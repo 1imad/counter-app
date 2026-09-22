@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import {
   HiPlus,
@@ -13,67 +13,123 @@ import {
   HiChartBar,
   HiFlag,
   HiPlusCircle,
-  HiBolt,
   HiFire,
   HiClock,
   HiTrash,
   HiPencilSquare,
   HiXMark,
-  HiCheck
+  HiCheck,
+  HiCalendarDays,
+  HiBellAlert,
+  HiBookOpen,
+  HiHeart
 } from 'react-icons/hi2';
 import { soundFx } from './utils/audio';
+import DhikrCalendar from './components/DhikrCalendar';
+import DhikrRemindersModal from './components/DhikrRemindersModal';
+import DhikrPresetsLibrary from './components/DhikrPresetsLibrary';
 import './App.css';
 
-const DEFAULT_COUNTERS = [
+// Default authentic Sunnah Zikr & Askar counters
+const DEFAULT_DHIKR_COUNTERS = [
   {
-    id: 'c-1',
-    title: 'Daily Water Tracker',
-    category: 'Wellness & Habit',
-    value: 5,
+    id: 'z-1',
+    title: 'SubhanAllah',
+    arabic: 'سُبْحَانَ ٱللَّٰهِ',
+    meaning: 'Glory be to Allah',
+    category: 'Tasbeeh Fatimah',
+    value: 0,
     step: 1,
-    target: 8,
+    target: 33,
     accentColor: '#06b6d4',
     glowColor: 'rgba(6, 182, 212, 0.4)'
   },
   {
-    id: 'c-2',
-    title: 'Pushups & Reps',
-    category: 'Fitness Routine',
-    value: 35,
-    step: 5,
-    target: 50,
+    id: 'z-2',
+    title: 'Alhamdulillah',
+    arabic: 'ٱلْحَمْدُ لِلَّٰهِ',
+    meaning: 'All praise is due to Allah',
+    category: 'Tasbeeh Fatimah',
+    value: 0,
+    step: 1,
+    target: 33,
+    accentColor: '#10b981',
+    glowColor: 'rgba(16, 185, 129, 0.4)'
+  },
+  {
+    id: 'z-3',
+    title: 'Allahu Akbar',
+    arabic: 'ٱللَّٰهُ أَكْبَرُ',
+    meaning: 'Allah is the Greatest',
+    category: 'Tasbeeh Fatimah',
+    value: 0,
+    step: 1,
+    target: 34,
     accentColor: '#8b5cf6',
     glowColor: 'rgba(139, 92, 246, 0.4)'
   },
   {
-    id: 'c-3',
-    title: 'Deep Work Focus Sessions',
-    category: 'Productivity',
-    value: 4,
+    id: 'z-4',
+    title: 'Astaghfirullah',
+    arabic: 'أَسْتَغْفِرُ ٱللَّٰهَ',
+    meaning: 'I seek forgiveness from Allah',
+    category: 'Daily Istighfar',
+    value: 0,
     step: 1,
-    target: 6,
-    accentColor: '#10b981',
-    glowColor: 'rgba(16, 185, 129, 0.4)'
+    target: 100,
+    accentColor: '#f59e0b',
+    glowColor: 'rgba(245, 158, 11, 0.4)'
+  },
+  {
+    id: 'z-5',
+    title: 'La ilaha illallah',
+    arabic: 'لَا إِلَٰهَ إِلَّا ٱللَّٰهُ',
+    meaning: 'There is no deity worthy of worship except Allah',
+    category: 'Kalimah Tayyibah',
+    value: 0,
+    step: 1,
+    target: 100,
+    accentColor: '#6366f1',
+    glowColor: 'rgba(99, 102, 241, 0.4)'
+  },
+  {
+    id: 'z-6',
+    title: 'Durood / Salawat',
+    arabic: 'اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ',
+    meaning: 'O Allah, send blessings upon Muhammad and his family',
+    category: 'Daily Salawat',
+    value: 0,
+    step: 1,
+    target: 100,
+    accentColor: '#ec4899',
+    glowColor: 'rgba(236, 72, 153, 0.4)'
   }
 ];
 
 const COLOR_THEMES = [
   { name: 'Cyan Neon', hex: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)' },
-  { name: 'Electric Purple', hex: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.4)' },
   { name: 'Emerald Glow', hex: '#10b981', glow: 'rgba(16, 185, 129, 0.4)' },
+  { name: 'Electric Purple', hex: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.4)' },
   { name: 'Amber Solar', hex: '#f59e0b', glow: 'rgba(245, 158, 11, 0.4)' },
-  { name: 'Rose Burst', hex: '#f43f5e', glow: 'rgba(244, 63, 94, 0.4)' },
+  { name: 'Rose Burst', hex: '#ec4899', glow: 'rgba(236, 72, 153, 0.4)' },
   { name: 'Indigo Core', hex: '#6366f1', glow: 'rgba(99, 102, 241, 0.4)' }
 ];
 
 export default function App() {
-  // Load counters from local storage or defaults
+  // Load counters from local storage or defaults (automatically migration to Dhikr if previous was generic)
   const [counters, setCounters] = useState(() => {
     try {
       const saved = localStorage.getItem('quantum_counters');
-      return saved ? JSON.parse(saved) : DEFAULT_COUNTERS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // If older version without arabic, load default Dhikrs
+        if (parsed.length > 0 && parsed[0].arabic) {
+          return parsed;
+        }
+      }
+      return DEFAULT_DHIKR_COUNTERS;
     } catch {
-      return DEFAULT_COUNTERS;
+      return DEFAULT_DHIKR_COUNTERS;
     }
   });
 
@@ -81,9 +137,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem('quantum_active_id');
       if (saved && counters.some(c => c.id === saved)) return saved;
-      return counters[0]?.id || 'c-1';
+      return counters[0]?.id || 'z-1';
     } catch {
-      return counters[0]?.id || 'c-1';
+      return counters[0]?.id || 'z-1';
     }
   });
 
@@ -138,36 +194,72 @@ export default function App() {
     }
   });
 
-  // Modal states
+  // Calendar Activity Tracking State
+  const [calendarData, setCalendarData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('quantum_dhikr_calendar');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Reminder Notification Settings State
+  const [reminderSettings, setReminderSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('quantum_dhikr_reminders');
+      return saved ? JSON.parse(saved) : {
+        enabled: true,
+        intervalMinutes: 30,
+        morningAdhkarEnabled: true,
+        morningAdhkarTime: '06:30',
+        eveningAdhkarEnabled: true,
+        eveningAdhkarTime: '17:30',
+        selectedDhikrType: 'all'
+      };
+    } catch {
+      return {
+        enabled: true,
+        intervalMinutes: 30,
+        morningAdhkarEnabled: true,
+        morningAdhkarTime: '06:30',
+        eveningAdhkarEnabled: true,
+        eveningAdhkarTime: '17:30',
+        selectedDhikrType: 'all'
+      };
+    }
+  });
+
+  // Live Toast for Reminders
+  const [activeToastReminder, setActiveToastReminder] = useState(null);
+
+  // Modals
   const [isNewCounterModalOpen, setIsNewCounterModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isRemindersOpen, setIsRemindersOpen] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+
   const [modalForm, setModalForm] = useState({
     title: '',
+    arabic: '',
+    meaning: '',
     category: '',
-    target: 20,
+    target: 33,
     step: 1,
     accentColor: COLOR_THEMES[0].hex,
     glowColor: COLOR_THEMES[0].glow
   });
 
   // Active counter object
-  const currentCounter = counters.find(c => c.id === activeId) || counters[0] || {
-    id: 'default',
-    title: 'Counter',
-    category: 'General',
-    value: 0,
-    step: 1,
-    target: 50,
-    accentColor: '#6366f1',
-    glowColor: 'rgba(99, 102, 241, 0.4)'
-  };
+  const currentCounter = counters.find(c => c.id === activeId) || counters[0] || DEFAULT_DHIKR_COUNTERS[0];
 
-  // Sync state to local storage
+  // Sync to local storage
   useEffect(() => {
     try {
       localStorage.setItem('quantum_counters', JSON.stringify(counters));
     } catch (e) {
-      console.error('Failed to save counters to local storage', e);
+      console.error('Failed to save counters', e);
     }
   }, [counters]);
 
@@ -175,7 +267,7 @@ export default function App() {
     try {
       localStorage.setItem('quantum_active_id', activeId);
     } catch (e) {
-      console.error('Failed to save active id to local storage', e);
+      console.error('Failed to save active id', e);
     }
   }, [activeId]);
 
@@ -183,7 +275,7 @@ export default function App() {
     try {
       localStorage.setItem('quantum_history', JSON.stringify(history));
     } catch (e) {
-      console.error('Failed to save history to local storage', e);
+      console.error('Failed to save history', e);
     }
   }, [history]);
 
@@ -191,15 +283,31 @@ export default function App() {
     try {
       localStorage.setItem('quantum_stats', JSON.stringify(stats));
     } catch (e) {
-      console.error('Failed to save stats to local storage', e);
+      console.error('Failed to save stats', e);
     }
   }, [stats]);
 
   useEffect(() => {
     try {
+      localStorage.setItem('quantum_dhikr_calendar', JSON.stringify(calendarData));
+    } catch (e) {
+      console.error('Failed to save calendar data', e);
+    }
+  }, [calendarData]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quantum_dhikr_reminders', JSON.stringify(reminderSettings));
+    } catch (e) {
+      console.error('Failed to save reminders', e);
+    }
+  }, [reminderSettings]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('quantum_sound_enabled', JSON.stringify(soundEnabled));
     } catch (e) {
-      console.error('Failed to save sound preference to local storage', e);
+      console.error('Failed to save sound', e);
     }
   }, [soundEnabled]);
 
@@ -207,11 +315,11 @@ export default function App() {
     try {
       localStorage.setItem('quantum_autotick_speed', autoTickSpeed.toString());
     } catch (e) {
-      console.error('Failed to save speed to local storage', e);
+      console.error('Failed to save speed', e);
     }
   }, [autoTickSpeed]);
 
-  // Update sound engine state
+  // Toggle sound
   const handleToggleSound = () => {
     const nextState = !soundEnabled;
     setSoundEnabled(nextState);
@@ -219,31 +327,31 @@ export default function App() {
     if (nextState) soundFx.playClick('up');
   };
 
-  // Trigger visual pulse
   const triggerPulse = (dir) => {
     setPulseDirection(dir);
     setTimeout(() => setPulseDirection(null), 180);
   };
 
-  // Check target celebration
   const checkMilestone = (prevVal, nextVal, target) => {
     if (target > 0 && prevVal < target && nextVal >= target) {
       soundFx.playCelebration();
       try {
         confetti({
-          particleCount: 80,
-          spread: 70,
+          particleCount: 85,
+          spread: 75,
           origin: { y: 0.6 },
-          colors: ['#6366f1', '#06b6d4', '#10b981', '#f59e0b']
+          colors: ['#06b6d4', '#10b981', '#8b5cf6', '#f59e0b']
         });
       } catch (e) {
-        // Confetti optional
+        // Optional
       }
     }
   };
 
   // General update value function
   const updateValue = useCallback((delta, label = 'Step') => {
+    const todayKey = new Date().toISOString().split('T')[0];
+
     setCounters(prevCounters =>
       prevCounters.map(item => {
         if (item.id !== activeId) return item;
@@ -255,6 +363,25 @@ export default function App() {
         triggerPulse(dir);
         soundFx.playClick(dir);
         checkMilestone(prevVal, nextVal, item.target);
+
+        // Update calendar tracking data
+        setCalendarData(prevCal => {
+          const existing = prevCal[todayKey] || { total: 0, breakdown: {} };
+          const prevDhikrCount = existing.breakdown[item.title] || 0;
+          const newTotal = Math.max(0, existing.total + delta);
+          const newDhikrCount = Math.max(0, prevDhikrCount + delta);
+
+          return {
+            ...prevCal,
+            [todayKey]: {
+              total: newTotal,
+              breakdown: {
+                ...existing.breakdown,
+                [item.title]: newDhikrCount
+              }
+            }
+          };
+        });
 
         // Record history
         const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -286,7 +413,6 @@ export default function App() {
     );
   }, [activeId]);
 
-  // Main Increment & Decrement handlers
   const handleIncrement = () => {
     updateValue(currentCounter.step || 1, `+${currentCounter.step} Step`);
   };
@@ -295,12 +421,10 @@ export default function App() {
     updateValue(-(currentCounter.step || 1), `-${currentCounter.step} Step`);
   };
 
-  // Quick jump adjustments
   const handleQuickAdjust = (amount) => {
-    updateValue(amount, `${amount > 0 ? '+' : ''}${amount} Quick Jump`);
+    updateValue(amount, `${amount > 0 ? '+' : ''}${amount} Quick Tally`);
   };
 
-  // Change Step
   const handleStepChange = (newStep) => {
     const num = Math.max(1, parseInt(newStep) || 1);
     setCounters(prev =>
@@ -308,7 +432,6 @@ export default function App() {
     );
   };
 
-  // Reset current counter
   const handleReset = () => {
     const prevVal = currentCounter.value;
     if (prevVal === 0) return;
@@ -335,12 +458,10 @@ export default function App() {
     ]);
   };
 
-  // Undo Last Action
   const handleUndo = () => {
     if (history.length === 0) return;
     const lastAction = history[0];
 
-    // Find the counter to revert
     setCounters(prev =>
       prev.map(c => {
         if (c.id === lastAction.counterId) {
@@ -354,7 +475,7 @@ export default function App() {
     setHistory(prev => prev.slice(1));
   };
 
-  // Auto-Tick Timer
+  // Auto-pulse
   useEffect(() => {
     let interval = null;
     if (isAutoTicking) {
@@ -365,10 +486,9 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isAutoTicking, autoTickSpeed, currentCounter.step, updateValue]);
 
-  // Global Keyboard Shortcuts
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't capture when typing in modal inputs
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
 
       if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -393,17 +513,112 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleIncrement, handleDecrement, currentCounter]);
 
-  // Calculate Target Percentage
+  // Send Notification Helper
+  const sendDhikrNotification = useCallback((dhikrType = 'all', customTitle = null, customBody = null) => {
+    const dhikrList = [
+      { name: 'SubhanAllah', arabic: 'سُبْحَانَ ٱللَّٰهِ', meaning: 'Glory be to Allah' },
+      { name: 'Alhamdulillah', arabic: 'ٱلْحَمْدُ لِلَّٰهِ', meaning: 'All praise is due to Allah' },
+      { name: 'Allahu Akbar', arabic: 'ٱللَّٰهُ أَكْبَرُ', meaning: 'Allah is the Greatest' },
+      { name: 'Astaghfirullah', arabic: 'أَسْتَغْفِرُ ٱللَّٰهَ', meaning: 'I seek forgiveness from Allah' },
+      { name: 'La ilaha illallah', arabic: 'لَا إِلَٰهَ إِلَّا ٱللَّٰهُ', meaning: 'There is no deity worthy of worship except Allah' },
+      { name: 'Salawat on Prophet ﷺ', arabic: 'اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ', meaning: 'O Allah, send blessings upon Muhammad' }
+    ];
+
+    let chosen = dhikrList[0];
+    if (dhikrType === 'all') {
+      chosen = dhikrList[Math.floor(Math.random() * dhikrList.length)];
+    } else {
+      const match = dhikrList.find(d => d.name.toLowerCase().includes(dhikrType.toLowerCase()));
+      if (match) chosen = match;
+    }
+
+    const title = customTitle || 'Time for Zikr & Askar ✨';
+    const body = customBody || `Take a moment to recite ${chosen.name} (${chosen.arabic}) • ${chosen.meaning}`;
+
+    soundFx.playChime();
+
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: '/favicon.svg'
+        });
+      } catch (e) {
+        console.error('Notification error', e);
+      }
+    }
+
+    setActiveToastReminder({
+      title,
+      body,
+      dhikrName: chosen.name
+    });
+  }, []);
+
+  // Background Reminder Scheduler
+  useEffect(() => {
+    if (!reminderSettings.enabled) return;
+
+    const checkReminders = () => {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTimeStr = `${currentHours}:${currentMinutes}`;
+
+      // 1. Morning Adhkar
+      if (
+        reminderSettings.morningAdhkarEnabled &&
+        currentTimeStr === reminderSettings.morningAdhkarTime &&
+        sessionStorage.getItem('morning_dhikr_sent') !== now.toDateString()
+      ) {
+        sessionStorage.setItem('morning_dhikr_sent', now.toDateString());
+        sendDhikrNotification(
+          'all',
+          '🌅 Morning Adhkar Reminder (أذكار الصباح)',
+          'Begin your morning with peaceful remembrance and protection from Allah.'
+        );
+      }
+
+      // 2. Evening Adhkar
+      if (
+        reminderSettings.eveningAdhkarEnabled &&
+        currentTimeStr === reminderSettings.eveningAdhkarTime &&
+        sessionStorage.getItem('evening_dhikr_sent') !== now.toDateString()
+      ) {
+        sessionStorage.setItem('evening_dhikr_sent', now.toDateString());
+        sendDhikrNotification(
+          'all',
+          '🌇 Evening Adhkar Reminder (أذكار المساء)',
+          'End your day with heartfelt gratitude and remembrance of Allah.'
+        );
+      }
+
+      // 3. Interval recurring
+      const lastNotified = Number(localStorage.getItem('quantum_last_notified_ts') || 0);
+      const intervalMs = (reminderSettings.intervalMinutes || 30) * 60 * 1000;
+      if (Date.now() - lastNotified >= intervalMs) {
+        localStorage.setItem('quantum_last_notified_ts', Date.now().toString());
+        sendDhikrNotification(reminderSettings.selectedDhikrType);
+      }
+    };
+
+    const intervalTimer = setInterval(checkReminders, 30000);
+    return () => clearInterval(intervalTimer);
+  }, [reminderSettings, sendDhikrNotification]);
+
+  // Target progress percentage
   const targetPct = currentCounter.target > 0
     ? Math.min(100, Math.max(0, Math.round((currentCounter.value / currentCounter.target) * 100)))
     : 0;
 
-  // New Counter Modal Actions
+  // Add counter modal
   const openNewCounterModal = () => {
     setModalForm({
-      title: 'New Counter',
-      category: 'General',
-      target: 20,
+      title: 'New Dhikr',
+      arabic: '',
+      meaning: '',
+      category: 'Personal Askar',
+      target: 33,
       step: 1,
       accentColor: COLOR_THEMES[0].hex,
       glowColor: COLOR_THEMES[0].glow
@@ -416,9 +631,11 @@ export default function App() {
     if (!modalForm.title.trim()) return;
 
     const newCounter = {
-      id: `c-${Date.now()}`,
+      id: `z-${Date.now()}`,
       title: modalForm.title.trim(),
-      category: modalForm.category.trim() || 'General',
+      arabic: modalForm.arabic.trim(),
+      meaning: modalForm.meaning.trim(),
+      category: modalForm.category.trim() || 'General Dhikr',
       value: 0,
       step: Number(modalForm.step) || 1,
       target: Number(modalForm.target) || 0,
@@ -432,10 +649,33 @@ export default function App() {
     soundFx.playClick('up');
   };
 
-  // Edit Counter Actions
+  // Add from Sunnah library
+  const handleAddPreset = (preset) => {
+    const newCounter = {
+      id: `z-${Date.now()}`,
+      title: preset.title,
+      arabic: preset.arabic,
+      meaning: preset.meaning,
+      category: preset.category,
+      value: 0,
+      step: preset.step || 1,
+      target: preset.target || 33,
+      accentColor: preset.accentColor,
+      glowColor: preset.glowColor
+    };
+
+    setCounters(prev => [...prev, newCounter]);
+    setActiveId(newCounter.id);
+    setIsLibraryOpen(false);
+    soundFx.playClick('up');
+  };
+
+  // Edit Counter
   const openEditModal = () => {
     setModalForm({
       title: currentCounter.title,
+      arabic: currentCounter.arabic || '',
+      meaning: currentCounter.meaning || '',
       category: currentCounter.category,
       target: currentCounter.target,
       step: currentCounter.step,
@@ -453,6 +693,8 @@ export default function App() {
           return {
             ...c,
             title: modalForm.title.trim() || c.title,
+            arabic: modalForm.arabic.trim(),
+            meaning: modalForm.meaning.trim(),
             category: modalForm.category.trim() || c.category,
             target: Number(modalForm.target) || 0,
             step: Number(modalForm.step) || 1,
@@ -481,21 +723,24 @@ export default function App() {
   };
 
   const handleClearStorage = () => {
-    if (window.confirm('Reset all counters and data back to defaults?')) {
+    if (window.confirm('Reset all counters and data back to authentic Dhikr defaults?')) {
       localStorage.removeItem('quantum_counters');
       localStorage.removeItem('quantum_active_id');
       localStorage.removeItem('quantum_history');
       localStorage.removeItem('quantum_stats');
       localStorage.removeItem('quantum_sound_enabled');
       localStorage.removeItem('quantum_autotick_speed');
-      setCounters(DEFAULT_COUNTERS);
-      setActiveId(DEFAULT_COUNTERS[0].id);
+      localStorage.removeItem('quantum_dhikr_calendar');
+      localStorage.removeItem('quantum_dhikr_reminders');
+      setCounters(DEFAULT_DHIKR_COUNTERS);
+      setActiveId(DEFAULT_DHIKR_COUNTERS[0].id);
       setHistory([]);
+      setCalendarData({});
       setStats({
         totalIncrements: 0,
         totalDecrements: 0,
-        maxEver: DEFAULT_COUNTERS[0].value,
-        minEver: DEFAULT_COUNTERS[0].value
+        maxEver: 0,
+        minEver: 0
       });
       soundFx.playClick('reset');
     }
@@ -503,53 +748,112 @@ export default function App() {
 
   return (
     <div className="app-container" style={{ '--card-glow': currentCounter.glowColor }}>
+      {/* Interactive In-App Reminder Toast Banner */}
+      {activeToastReminder && (
+        <div className="dhikr-reminder-toast">
+          <div className="toast-content">
+            <div className="toast-bell-icon">
+              <HiBellAlert />
+            </div>
+            <div>
+              <span className="toast-title">{activeToastReminder.title}</span>
+              <p className="toast-msg">{activeToastReminder.body}</p>
+            </div>
+          </div>
+          <div className="toast-actions">
+            <button
+              className="toast-action-btn"
+              onClick={() => {
+                // Find matching counter or active, add 33
+                updateValue(33, '+33 Dhikr Reminder');
+                setActiveToastReminder(null);
+              }}
+            >
+              Recite (+33)
+            </button>
+            <button
+              className="toast-close-btn"
+              onClick={() => setActiveToastReminder(null)}
+              aria-label="Dismiss Reminder"
+            >
+              <HiXMark />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header Bar */}
       <header className="app-header">
         <div className="brand-section">
-          <div className="brand-icon-box">
-            <HiBolt />
+          <div className="brand-icon-box" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}>
+            <HiHeart />
           </div>
           <div>
-            <h1 className="brand-title">QuantumCount</h1>
-            <p className="brand-subtitle">Pro Interactive Counter</p>
+            <h1 className="brand-title">QuantumCount • Tasbeeh & Zikr</h1>
+            <p className="brand-subtitle">Digital Askar & Habit Tracker</p>
           </div>
         </div>
 
         <div className="header-controls">
+          {/* Calendar Trigger */}
+          <button
+            className="icon-btn"
+            onClick={() => setIsCalendarOpen(true)}
+            aria-label="Open Adhkar Calendar"
+            title="Adhkar Calendar & Daily Habits"
+          >
+            <HiCalendarDays className="btn-icon" style={{ color: '#38bdf8' }} />
+            <span className="btn-text">Calendar</span>
+          </button>
+
+          {/* Reminders Trigger */}
+          <button
+            className={`icon-btn ${reminderSettings.enabled ? 'active' : ''}`}
+            onClick={() => setIsRemindersOpen(true)}
+            aria-label="Open Zikr Reminders"
+            title="Daily Zikr & Askar Reminders"
+          >
+            <HiBellAlert className="btn-icon" style={{ color: '#f59e0b' }} />
+            <span className="btn-text">Reminders</span>
+          </button>
+
+          {/* Sunnah Library Trigger */}
+          <button
+            className="icon-btn"
+            onClick={() => setIsLibraryOpen(true)}
+            aria-label="Open Sunnah Adhkar Library"
+            title="Browse Sunnah Adhkar Presets"
+          >
+            <HiBookOpen className="btn-icon" style={{ color: '#a78bfa' }} />
+            <span className="btn-text">Library</span>
+          </button>
+
+          {/* Sound Toggle */}
           <button
             className={`icon-btn ${soundEnabled ? 'active' : ''}`}
             onClick={handleToggleSound}
             aria-label="Toggle Sound Effects"
-            title={soundEnabled ? "Audio Haptics: ON (Click to Mute)" : "Audio Haptics: OFF"}
+            title={soundEnabled ? "Audio Haptics: ON" : "Audio Haptics: OFF"}
           >
             {soundEnabled ? <HiSpeakerWave className="btn-icon" /> : <HiSpeakerXMark className="btn-icon" />}
-            <span className="btn-text">{soundEnabled ? 'Sound ON' : 'Muted'}</span>
+            <span className="btn-text">{soundEnabled ? 'Sound' : 'Muted'}</span>
           </button>
 
-          <button
-            className="icon-btn"
-            onClick={openNewCounterModal}
-            aria-label="Add New Counter"
-            title="Create a new custom counter"
-          >
-            <HiPlusCircle className="btn-icon" />
-            <span className="btn-text">New Counter</span>
-          </button>
-
+          {/* Reset Storage */}
           <button
             className="icon-btn"
             onClick={handleClearStorage}
             aria-label="Reset Storage to Defaults"
-            title="Reset storage to default counters"
+            title="Reset storage to default Dhikrs"
           >
             <HiArrowPath className="btn-icon" />
-            <span className="btn-text">Reset Data</span>
+            <span className="btn-text">Reset</span>
           </button>
         </div>
       </header>
 
       {/* Multi-Counter Tab Switcher */}
-      <nav className="counter-tabs-wrapper" aria-label="Counter Switcher">
+      <nav className="counter-tabs-wrapper" aria-label="Dhikr Switcher">
         <div className="counter-tabs-list">
           {counters.map(counter => (
             <button
@@ -571,26 +875,26 @@ export default function App() {
         </div>
 
         <button className="new-counter-btn" onClick={openNewCounterModal}>
-          <HiPlus /> Add Tab
+          <HiPlus /> Custom Zikr
         </button>
       </nav>
 
       {/* Main App Grid */}
       <main className="app-grid">
-        {/* Left / Center: Interactive Counter Panel */}
+        {/* Center: Interactive Counter Panel */}
         <section className="counter-hero-card">
           {/* Card Top Information */}
           <div className="hero-header">
             <div className="counter-info">
               <span className="counter-category-label">
-                <HiFire /> {currentCounter.category}
+                <HiSparkles /> {currentCounter.category}
               </span>
               <div className="counter-title-group">
                 <h2 className="counter-heading">{currentCounter.title}</h2>
                 <button
                   className="edit-btn"
                   onClick={openEditModal}
-                  title="Edit counter details & target"
+                  title="Edit Dhikr settings & target"
                   aria-label="Edit Counter Settings"
                 >
                   <HiPencilSquare />
@@ -612,10 +916,42 @@ export default function App() {
             </div>
           </div>
 
-          {/* Value Display */}
+          {/* Authentic Arabic Script Display */}
+          {currentCounter.arabic && (
+            <div className="counter-arabic-text" lang="ar">
+              {currentCounter.arabic}
+            </div>
+          )}
+
+          {/* Meaning / Translation */}
+          {currentCounter.meaning && (
+            <p className="counter-meaning-text">
+              "{currentCounter.meaning}"
+            </p>
+          )}
+
+          {/* Tasbeeh Fatimah Quick Step Switcher */}
+          {['SubhanAllah', 'Alhamdulillah', 'Allahu Akbar'].includes(currentCounter.title) && (
+            <div className="tasbeeh-quick-switch">
+              {counters.filter(c => ['SubhanAllah', 'Alhamdulillah', 'Allahu Akbar'].includes(c.title)).map(c => (
+                <button
+                  key={c.id}
+                  className={`tasbeeh-chip ${c.id === activeId ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveId(c.id);
+                    soundFx.playClick('up');
+                  }}
+                >
+                  {c.title} ({c.value}/{c.target})
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Giant Value Display */}
           <div className="counter-display-wrapper">
             <div className="display-label-pill">
-              <HiClock /> Current Total
+              <HiClock /> Recitation Count
             </div>
             <div
               className={`count-number-glow ${
@@ -632,7 +968,7 @@ export default function App() {
             <div className="target-progress-box">
               <div className="target-progress-header">
                 <span className="target-label">
-                  <HiFlag /> Target Goal: <strong className="target-val">{currentCounter.target}</strong>
+                  <HiFlag /> Target Goal: <strong className="target-val">{currentCounter.target}x</strong>
                 </span>
                 <span className="target-val">{targetPct}% Completed</span>
               </div>
@@ -649,19 +985,19 @@ export default function App() {
               </div>
               {targetPct >= 100 && (
                 <div className="target-reached-pill">
-                  <HiSparkles /> Milestone Achieved! Excellent job!
+                  <HiSparkles /> Milestone Complete! بارك الله فيك
                 </div>
               )}
             </div>
           )}
 
-          {/* Step Size Selector with Clear Labels */}
+          {/* Step Size Selector */}
           <div className="step-control-section">
             <span className="step-label">
               Active Step Increment: <strong>±{currentCounter.step}</strong>
             </span>
             <div className="step-button-group">
-              {[1, 5, 10, 25, 100].map(val => (
+              {[1, 5, 10, 33, 100].map(val => (
                 <button
                   key={val}
                   className={`step-btn ${currentCounter.step === val ? 'active' : ''}`}
@@ -723,14 +1059,14 @@ export default function App() {
 
           {/* Quick Adjustments Section */}
           <div className="quick-adjust-section">
-            <span className="quick-adjust-label">Quick Jump Adjustments</span>
+            <span className="quick-adjust-label">Quick Recitation Adjustments</span>
             <div className="quick-adjust-chips">
-              <button className="chip-btn chip-minus" onClick={() => handleQuickAdjust(-50)}>-50</button>
+              <button className="chip-btn chip-minus" onClick={() => handleQuickAdjust(-33)}>-33</button>
               <button className="chip-btn chip-minus" onClick={() => handleQuickAdjust(-10)}>-10</button>
               <button className="chip-btn chip-minus" onClick={() => handleQuickAdjust(-5)}>-5</button>
               <button className="chip-btn chip-plus" onClick={() => handleQuickAdjust(5)}>+5</button>
               <button className="chip-btn chip-plus" onClick={() => handleQuickAdjust(10)}>+10</button>
-              <button className="chip-btn chip-plus" onClick={() => handleQuickAdjust(50)}>+50</button>
+              <button className="chip-btn chip-plus" onClick={() => handleQuickAdjust(33)}>+33</button>
               <button className="chip-btn chip-plus" onClick={() => handleQuickAdjust(100)}>+100</button>
             </div>
           </div>
@@ -754,7 +1090,7 @@ export default function App() {
               aria-label="Toggle auto-pulse timer"
             >
               {isAutoTicking ? <HiPause /> : <HiPlay />}
-              <span>{isAutoTicking ? 'Pause Auto-Pulse' : 'Start Auto-Pulse'}</span>
+              <span>{isAutoTicking ? 'Pause Auto' : 'Auto Pulse'}</span>
             </button>
 
             {isAutoTicking && (
@@ -771,10 +1107,10 @@ export default function App() {
                 }}
                 aria-label="Auto pulse speed interval"
               >
-                <option value={2000}>Every 2.0s (Slow)</option>
-                <option value={1000}>Every 1.0s (Normal)</option>
-                <option value={500}>Every 0.5s (Fast)</option>
-                <option value={250}>Every 0.25s (Turbo)</option>
+                <option value={2000}>Every 2.0s</option>
+                <option value={1000}>Every 1.0s</option>
+                <option value={500}>Every 0.5s</option>
+                <option value={250}>Every 0.25s</option>
               </select>
             )}
 
@@ -797,7 +1133,7 @@ export default function App() {
           {/* Metrics Card */}
           <div className="sidebar-card">
             <div className="sidebar-card-title">
-              <span><HiChartBar /> Live Telemetry</span>
+              <span><HiChartBar /> Session Telemetry</span>
             </div>
 
             <div className="stat-grid">
@@ -854,7 +1190,7 @@ export default function App() {
             <div className="history-list">
               {history.length === 0 ? (
                 <div className="empty-history">
-                  No actions yet. Click + or - to start counting!
+                  No recitations logged yet. Tap + or Space to begin!
                 </div>
               ) : (
                 history.map(item => (
@@ -866,7 +1202,7 @@ export default function App() {
                         {item.delta > 0 ? `+${item.delta}` : item.delta}
                       </span>
                       <div className="history-details">
-                        <span className="history-action-text">{item.label}</span>
+                        <span className="history-action-text">{item.counterTitle}</span>
                         <span className="history-time">{item.time}</span>
                       </div>
                     </div>
@@ -899,16 +1235,39 @@ export default function App() {
         </div>
         <div className="key-guide-item">
           <span className="key-badge">M</span>
-          <span>Toggle Mute</span>
+          <span>Toggle Audio Mute</span>
         </div>
       </footer>
 
-      {/* Modal: Create New Counter */}
+      {/* 📅 Dhikr Calendar Modal */}
+      <DhikrCalendar
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        calendarData={calendarData}
+      />
+
+      {/* 🔔 Reminders Settings Modal */}
+      <DhikrRemindersModal
+        isOpen={isRemindersOpen}
+        onClose={() => setIsRemindersOpen(false)}
+        reminderSettings={reminderSettings}
+        onSaveSettings={newSettings => setReminderSettings(newSettings)}
+        onTriggerTestNotification={dhikrType => sendDhikrNotification(dhikrType)}
+      />
+
+      {/* 📖 Sunnah Presets Library Modal */}
+      <DhikrPresetsLibrary
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onAddPreset={handleAddPreset}
+      />
+
+      {/* Modal: Create Custom Counter */}
       {isNewCounterModalOpen && (
         <div className="modal-backdrop" onClick={() => setIsNewCounterModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Create New Counter</h3>
+              <h3 className="modal-title">Create Custom Zikr</h3>
               <button className="close-modal-btn" onClick={() => setIsNewCounterModalOpen(false)}>
                 <HiXMark />
               </button>
@@ -916,11 +1275,11 @@ export default function App() {
 
             <form onSubmit={saveNewCounter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="form-group">
-                <label className="form-label">Counter Name / Label</label>
+                <label className="form-label">Dhikr Name (English / Transliteration)</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Daily Espresso Shots"
+                  placeholder="e.g. HasbunAllahu wa ni'mal wakeel"
                   value={modalForm.title}
                   onChange={e => setModalForm({ ...modalForm, title: e.target.value })}
                   className="form-input"
@@ -929,10 +1288,34 @@ export default function App() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Category / Purpose</label>
+                <label className="form-label">Arabic Text (Optional)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Health, Inventory, Gaming"
+                  placeholder="e.g. حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ"
+                  value={modalForm.arabic}
+                  onChange={e => setModalForm({ ...modalForm, arabic: e.target.value })}
+                  className="form-input"
+                  dir="rtl"
+                  style={{ fontFamily: 'Amiri, serif', fontSize: '1.2rem' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Meaning / Translation (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Allah is sufficient for us..."
+                  value={modalForm.meaning}
+                  onChange={e => setModalForm({ ...modalForm, meaning: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Category</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Daily Istighfar, Morning Askar"
                   value={modalForm.category}
                   onChange={e => setModalForm({ ...modalForm, category: e.target.value })}
                   className="form-input"
@@ -941,11 +1324,11 @@ export default function App() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Target Goal</label>
+                  <label className="form-label">Target Goal (e.g. 33, 100)</label>
                   <input
                     type="number"
                     min="0"
-                    placeholder="e.g. 50"
+                    placeholder="e.g. 33"
                     value={modalForm.target}
                     onChange={e => setModalForm({ ...modalForm, target: e.target.value })}
                     className="form-input"
@@ -965,7 +1348,7 @@ export default function App() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Theme Color Accent</label>
+                <label className="form-label">Theme Color</label>
                 <div className="color-options">
                   {COLOR_THEMES.map(theme => (
                     <button
@@ -985,7 +1368,7 @@ export default function App() {
                   Cancel
                 </button>
                 <button type="submit" className="modal-btn-confirm">
-                  Create Counter
+                  Create Dhikr
                 </button>
               </div>
             </form>
@@ -998,7 +1381,7 @@ export default function App() {
         <div className="modal-backdrop" onClick={() => setIsEditModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Edit Counter Settings</h3>
+              <h3 className="modal-title">Edit Dhikr Settings</h3>
               <button className="close-modal-btn" onClick={() => setIsEditModalOpen(false)}>
                 <HiXMark />
               </button>
@@ -1006,12 +1389,34 @@ export default function App() {
 
             <form onSubmit={saveEditCounter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="form-group">
-                <label className="form-label">Counter Name</label>
+                <label className="form-label">Dhikr Name</label>
                 <input
                   type="text"
                   required
                   value={modalForm.title}
                   onChange={e => setModalForm({ ...modalForm, title: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Arabic Text</label>
+                <input
+                  type="text"
+                  value={modalForm.arabic}
+                  onChange={e => setModalForm({ ...modalForm, arabic: e.target.value })}
+                  className="form-input"
+                  dir="rtl"
+                  style={{ fontFamily: 'Amiri, serif', fontSize: '1.2rem' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Meaning / Translation</label>
+                <input
+                  type="text"
+                  value={modalForm.meaning}
+                  onChange={e => setModalForm({ ...modalForm, meaning: e.target.value })}
                   className="form-input"
                 />
               </div>
@@ -1028,7 +1433,7 @@ export default function App() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Target Milestone</label>
+                  <label className="form-label">Target Goal</label>
                   <input
                     type="number"
                     min="0"
