@@ -789,8 +789,8 @@ export default function App() {
             <HiHeart />
           </div>
           <div>
-            <h1 className="brand-title">QuantumCount • Tasbeeh & Zikr</h1>
-            <p className="brand-subtitle">Digital Askar & Habit Tracker</p>
+            <h1 className="brand-title">NoorTasbih</h1>
+            <p className="brand-subtitle">Digital Tasbeeh & Adhkar Tracker</p>
           </div>
         </div>
 

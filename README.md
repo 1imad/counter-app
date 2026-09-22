@@ -1,6 +1,6 @@
-# QuantumCount • Modern Pro Counter Experience
+# NoorTasbih • Digital Tasbeeh & Adhkar Tracker
 
-A high-performance, beautifully designed multi-tab digital counter application built with React, Vite, and `react-icons`.
+A high-performance, beautifully designed Islamic Digital Tasbeeh, Zikr counter, and Adhkar habit tracker with authentic Arabic calligraphy, calendar logging, and notification reminders.
 
 ## 🚀 Features
 - **Multi-Counter Management**: Run multiple categorized counters side-by-side (Fitness, Wellness, Productivity, Auditing).

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://quantumcount.app/sitemap.xml
+Sitemap: https://noortasbih.app/sitemap.xml
