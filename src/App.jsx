@@ -523,7 +523,7 @@ export default function App() {
             title={soundEnabled ? "Audio Haptics: ON (Click to Mute)" : "Audio Haptics: OFF"}
           >
             {soundEnabled ? <HiSpeakerWave className="btn-icon" /> : <HiSpeakerXMark className="btn-icon" />}
-            <span>{soundEnabled ? 'Sound ON' : 'Muted'}</span>
+            <span className="btn-text">{soundEnabled ? 'Sound ON' : 'Muted'}</span>
           </button>
 
           <button
@@ -533,7 +533,7 @@ export default function App() {
             title="Create a new custom counter"
           >
             <HiPlusCircle className="btn-icon" />
-            <span>New Counter</span>
+            <span className="btn-text">New Counter</span>
           </button>
 
           <button
@@ -543,7 +543,7 @@ export default function App() {
             title="Reset storage to default counters"
           >
             <HiArrowPath className="btn-icon" />
-            <span>Reset Data</span>
+            <span className="btn-text">Reset Data</span>
           </button>
         </div>
       </header>
