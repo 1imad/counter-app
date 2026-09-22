@@ -24,10 +24,14 @@ import {
   HiBookOpen,
   HiHeart
 } from 'react-icons/hi2';
+import { FaHeadphones } from 'react-icons/fa6';
 import { soundFx } from './utils/audio';
+import { earbudController } from './utils/earbudMediaSession';
 import DhikrCalendar from './components/DhikrCalendar';
 import DhikrRemindersModal from './components/DhikrRemindersModal';
 import DhikrPresetsLibrary from './components/DhikrPresetsLibrary';
+import DhikrAnalyticsModal from './components/DhikrAnalyticsModal';
+import EarbudModal from './components/EarbudModal';
 import './App.css';
 
 // Default authentic Sunnah Zikr & Askar counters
@@ -239,6 +243,9 @@ export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isEarbudActive, setIsEarbudActive] = useState(false);
+  const [isEarbudModalOpen, setIsEarbudModalOpen] = useState(false);
 
   const [modalForm, setModalForm] = useState({
     title: '',
@@ -424,6 +431,31 @@ export default function App() {
   const handleQuickAdjust = (amount) => {
     updateValue(amount, `${amount > 0 ? '+' : ''}${amount} Quick Tally`);
   };
+
+  // Toggle wireless earbud tap mode
+  const handleToggleEarbudMode = () => {
+    if (isEarbudActive) {
+      earbudController.deactivate();
+      setIsEarbudActive(false);
+    } else {
+      const activated = earbudController.activate({
+        onIncrement: () => updateValue(currentCounter.step || 1, 'Earbud Tap'),
+        onDecrement: () => updateValue(-(currentCounter.step || 1), 'Earbud Tap'),
+        onFastJump: (amount) => updateValue(amount, 'Earbud Gesture'),
+        currentTitle: currentCounter.title
+      });
+      if (activated) {
+        setIsEarbudActive(true);
+      }
+    }
+  };
+
+  // Sync MediaSession metadata whenever active counter or value changes
+  useEffect(() => {
+    if (isEarbudActive) {
+      earbudController.updateMetadata(currentCounter.title, currentCounter.value, currentCounter.target);
+    }
+  }, [isEarbudActive, currentCounter.title, currentCounter.value, currentCounter.target]);
 
   const handleStepChange = (newStep) => {
     const num = Math.max(1, parseInt(newStep) || 1);
@@ -795,60 +827,89 @@ export default function App() {
         </div>
 
         <div className="header-controls">
-          {/* Calendar Trigger */}
-          <button
-            className="icon-btn"
-            onClick={() => setIsCalendarOpen(true)}
-            aria-label="Open Adhkar Calendar"
-            title="Adhkar Calendar & Daily Habits"
-          >
-            <HiCalendarDays className="btn-icon" style={{ color: '#38bdf8' }} />
-            <span className="btn-text">Calendar</span>
-          </button>
+          {/* Feature Navigation Pill Group */}
+          <nav className="nav-pill-group" aria-label="Feature navigation">
+            {/* Calendar */}
+            <button
+              className="nav-item-btn"
+              onClick={() => setIsCalendarOpen(true)}
+              aria-label="Open Adhkar Calendar"
+              title="Adhkar Calendar & Daily Habits"
+            >
+              <HiCalendarDays className="nav-icon" style={{ color: '#38bdf8' }} />
+              <span className="nav-item-label">Calendar</span>
+            </button>
 
-          {/* Reminders Trigger */}
-          <button
-            className={`icon-btn ${reminderSettings.enabled ? 'active' : ''}`}
-            onClick={() => setIsRemindersOpen(true)}
-            aria-label="Open Zikr Reminders"
-            title="Daily Zikr & Askar Reminders"
-          >
-            <HiBellAlert className="btn-icon" style={{ color: '#f59e0b' }} />
-            <span className="btn-text">Reminders</span>
-          </button>
+            {/* Reminders */}
+            <button
+              className="nav-item-btn"
+              onClick={() => setIsRemindersOpen(true)}
+              aria-label="Open Zikr Reminders"
+              title="Daily Zikr & Askar Reminders"
+            >
+              <HiBellAlert className="nav-icon" style={{ color: '#f59e0b' }} />
+              <span className="nav-item-label">Reminders</span>
+              {reminderSettings.enabled && <span className="nav-dot-indicator green" title="Reminders active" />}
+            </button>
 
-          {/* Sunnah Library Trigger */}
-          <button
-            className="icon-btn"
-            onClick={() => setIsLibraryOpen(true)}
-            aria-label="Open Sunnah Adhkar Library"
-            title="Browse Sunnah Adhkar Presets"
-          >
-            <HiBookOpen className="btn-icon" style={{ color: '#a78bfa' }} />
-            <span className="btn-text">Library</span>
-          </button>
+            {/* Earbuds Tap Trigger */}
+            <button
+              className={`nav-item-btn ${isEarbudActive ? 'active-earbud' : ''}`}
+              onClick={() => setIsEarbudModalOpen(true)}
+              aria-label="Wireless Earbud Tap Mode"
+              title={isEarbudActive ? "Earbud Tap Mode: Active" : "Connect Wireless Earbuds"}
+            >
+              <FaHeadphones className="nav-icon" style={{ color: isEarbudActive ? '#67e8f9' : '#38bdf8' }} />
+              <span className="nav-item-label">{isEarbudActive ? 'Earbuds ON' : 'Earbuds'}</span>
+              {isEarbudActive && <span className="nav-dot-indicator cyan pulse" />}
+            </button>
 
-          {/* Sound Toggle */}
-          <button
-            className={`icon-btn ${soundEnabled ? 'active' : ''}`}
-            onClick={handleToggleSound}
-            aria-label="Toggle Sound Effects"
-            title={soundEnabled ? "Audio Haptics: ON" : "Audio Haptics: OFF"}
-          >
-            {soundEnabled ? <HiSpeakerWave className="btn-icon" /> : <HiSpeakerXMark className="btn-icon" />}
-            <span className="btn-text">{soundEnabled ? 'Sound' : 'Muted'}</span>
-          </button>
+            {/* Analytics Trigger */}
+            <button
+              className="nav-item-btn"
+              onClick={() => setIsAnalyticsOpen(true)}
+              aria-label="View Session Analytics"
+              title="Session Analytics & Recitation History"
+            >
+              <HiChartBar className="nav-icon" style={{ color: '#ec4899' }} />
+              <span className="nav-item-label">Analytics</span>
+            </button>
+          </nav>
 
-          {/* Reset Storage */}
-          <button
-            className="icon-btn"
-            onClick={handleClearStorage}
-            aria-label="Reset Storage to Defaults"
-            title="Reset storage to default Dhikrs"
-          >
-            <HiArrowPath className="btn-icon" />
-            <span className="btn-text">Reset</span>
-          </button>
+          <div className="nav-divider" aria-hidden="true" />
+
+          {/* Quick Utility Actions */}
+          <div className="nav-util-group">
+            {/* Sunnah Library quick toggle */}
+            <button
+              className="icon-circle-btn"
+              onClick={() => setIsLibraryOpen(true)}
+              aria-label="Open Sunnah Adhkar Library"
+              title="Sunnah Adhkar Presets Library"
+            >
+              <HiBookOpen style={{ color: '#a78bfa' }} />
+            </button>
+
+            {/* Sound Toggle */}
+            <button
+              className={`icon-circle-btn ${soundEnabled ? 'sound-on' : ''}`}
+              onClick={handleToggleSound}
+              aria-label="Toggle Audio Sound Haptics"
+              title={soundEnabled ? "Audio Click: Sound ON" : "Audio Click: Muted"}
+            >
+              {soundEnabled ? <HiSpeakerWave /> : <HiSpeakerXMark />}
+            </button>
+
+            {/* Reset Storage */}
+            <button
+              className="icon-circle-btn danger-hover"
+              onClick={handleClearStorage}
+              aria-label="Reset Storage to Defaults"
+              title="Reset counters to Sunnah defaults"
+            >
+              <HiArrowPath />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -874,9 +935,18 @@ export default function App() {
           ))}
         </div>
 
-        <button className="new-counter-btn" onClick={openNewCounterModal}>
-          <HiPlus /> Custom Zikr
-        </button>
+        <div className="counter-tabs-actions">
+          <button
+            className="secondary-tab-btn"
+            onClick={() => setIsLibraryOpen(true)}
+            title="Browse Sunnah Adhkar Library Presets"
+          >
+            <HiBookOpen /> Sunnah Library
+          </button>
+          <button className="new-counter-btn" onClick={openNewCounterModal} title="Create Custom Dhikr Counter">
+            <HiPlus /> Custom Zikr
+          </button>
+        </div>
       </nav>
 
       {/* Main App Grid */}
@@ -950,6 +1020,27 @@ export default function App() {
 
           {/* Giant Value Display */}
           <div className="counter-display-wrapper">
+            {isEarbudActive && (
+              <button
+                type="button"
+                className="display-label-pill"
+                onClick={() => setIsEarbudModalOpen(true)}
+                style={{
+                  background: 'rgba(6, 182, 212, 0.2)',
+                  borderColor: 'rgba(6, 182, 212, 0.5)',
+                  color: '#67e8f9',
+                  cursor: 'pointer',
+                  marginBottom: '0.45rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem'
+                }}
+                title="Earbud Tap Mode is active. Click to view controls."
+              >
+                <FaHeadphones /> Earbud Tap Active (Tap/Squeeze Earbud to Count)
+              </button>
+            )}
+
             <div className="display-label-pill">
               <HiClock /> Recitation Count
             </div>
@@ -1116,6 +1207,15 @@ export default function App() {
 
             <button
               className="util-btn"
+              onClick={() => setIsAnalyticsOpen(true)}
+              title="View session analytics & recitations history"
+            >
+              <HiChartBar />
+              <span>Analytics</span>
+            </button>
+
+            <button
+              className="util-btn"
               onClick={handleUndo}
               disabled={history.length === 0}
               style={{ opacity: history.length === 0 ? 0.45 : 1 }}
@@ -1127,92 +1227,6 @@ export default function App() {
             </button>
           </div>
         </section>
-
-        {/* Right Column: Telemetry Stats & Activity Log */}
-        <aside className="side-column">
-          {/* Metrics Card */}
-          <div className="sidebar-card">
-            <div className="sidebar-card-title">
-              <span><HiChartBar /> Session Telemetry</span>
-            </div>
-
-            <div className="stat-grid">
-              <div className="stat-item">
-                <span className="stat-label">Total Increments</span>
-                <span className="stat-val" style={{ color: '#6ee7b7' }}>
-                  {stats.totalIncrements}
-                </span>
-              </div>
-
-              <div className="stat-item">
-                <span className="stat-label">Total Decrements</span>
-                <span className="stat-val" style={{ color: '#fda4af' }}>
-                  {stats.totalDecrements}
-                </span>
-              </div>
-
-              <div className="stat-item">
-                <span className="stat-label">Highest Peak</span>
-                <span className="stat-val">
-                  {stats.maxEver}
-                </span>
-              </div>
-
-              <div className="stat-item">
-                <span className="stat-label">Lowest Valley</span>
-                <span className="stat-val">
-                  {stats.minEver}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Activity History Audit Card */}
-          <div className="sidebar-card">
-            <div className="sidebar-card-title">
-              <span><HiClock /> Activity History</span>
-              {history.length > 0 && (
-                <button
-                  onClick={() => setHistory([])}
-                  style={{
-                    background: 'transparent',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer'
-                  }}
-                  title="Clear history log"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            <div className="history-list">
-              {history.length === 0 ? (
-                <div className="empty-history">
-                  No recitations logged yet. Tap + or Space to begin!
-                </div>
-              ) : (
-                history.map(item => (
-                  <div key={item.id} className="history-item">
-                    <div className="history-info">
-                      <span className={`history-tag ${
-                        item.type === 'up' ? 'tag-up' : item.type === 'down' ? 'tag-down' : 'tag-reset'
-                      }`}>
-                        {item.delta > 0 ? `+${item.delta}` : item.delta}
-                      </span>
-                      <div className="history-details">
-                        <span className="history-action-text">{item.counterTitle}</span>
-                        <span className="history-time">{item.time}</span>
-                      </div>
-                    </div>
-                    <span className="history-new-val">→ {item.nextVal}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </aside>
       </main>
 
       {/* Keyboard Shortcuts Helper Banner */}
@@ -1260,6 +1274,24 @@ export default function App() {
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
         onAddPreset={handleAddPreset}
+      />
+
+      {/* 📊 Session Analytics Modal */}
+      <DhikrAnalyticsModal
+        isOpen={isAnalyticsOpen}
+        onClose={() => setIsAnalyticsOpen(false)}
+        stats={stats}
+        history={history}
+        onClearHistory={() => setHistory([])}
+      />
+
+      {/* 🎧 Wireless Earbud Tasbeeh Modal */}
+      <EarbudModal
+        isOpen={isEarbudModalOpen}
+        onClose={() => setIsEarbudModalOpen(false)}
+        isEarbudActive={isEarbudActive}
+        onToggleEarbudMode={handleToggleEarbudMode}
+        onTestClick={() => updateValue(currentCounter.step || 1, 'Simulated Earbud Tap')}
       />
 
       {/* Modal: Create Custom Counter */}
