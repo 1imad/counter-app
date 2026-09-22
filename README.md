@@ -1,16 +1,61 @@
-# React + Vite
+# QuantumCount • Modern Pro Counter Experience
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A high-performance, beautifully designed multi-tab digital counter application built with React, Vite, and `react-icons`.
 
-Currently, two official plugins are available:
+## 🚀 Features
+- **Multi-Counter Management**: Run multiple categorized counters side-by-side (Fitness, Wellness, Productivity, Auditing).
+- **Persistent Storage**: All counters, logs, active tabs, settings, and telemetry persist across page refreshes via `localStorage`.
+- **Target Milestones & Celebration**: Set goals with visual progress bars and confetti celebration when achieved.
+- **Tactile Audio Feedback**: Web Audio API synthesized clicks and fanfares without external audio files.
+- **Activity History & Undo**: Step-by-step history log with one-click undo support.
+- **Keyboard Navigation**: Space / Arrow keys for fast incrementing and decrementing.
+- **Full SEO Optimization**: Open Graph tags, Twitter cards, meta descriptions, and Google Schema.org JSON-LD structured data.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🌐 Deploying to Vercel
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Option 1: Deploy via GitHub (Recommended)
+1. Push this repository to GitHub:
+   ```bash
+   git remote add origin https://github.com/<your-username>/counter-app.git
+   git push -u origin main
+   ```
+2. Go to [vercel.com](https://vercel.com/) and log in.
+3. Click **"Add New..."** > **"Project"**.
+4. Import your `counter-app` repository.
+5. Vercel will automatically detect:
+   - **Framework Preset**: Vite
+   - **Build Command**: `vite build`
+   - **Output Directory**: `dist`
+6. Click **Deploy**.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+### Option 2: Deploy using Vercel CLI
+Run the following command in your terminal from the project directory:
+```bash
+npx vercel
+```
+Follow the prompt instructions (default settings will work out of the box). For production deployment:
+```bash
+npx vercel --prod
+```
+
+---
+
+## 🛠️ Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start local dev server
+npm run dev
+
+# Build production bundle
+npm run build
+
+# Preview production build locally
+npm run preview
+```
