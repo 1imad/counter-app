@@ -864,6 +864,17 @@ export default function App() {
               {isEarbudActive && <span className="nav-dot-indicator cyan pulse" />}
             </button>
 
+            {/* Sunnah Library */}
+            <button
+              className="nav-item-btn"
+              onClick={() => setIsLibraryOpen(true)}
+              aria-label="Open Sunnah Adhkar Library"
+              title="Sunnah Adhkar Presets Library"
+            >
+              <HiBookOpen className="nav-icon" style={{ color: '#a78bfa' }} />
+              <span className="nav-item-label">Library</span>
+            </button>
+
             {/* Analytics Trigger */}
             <button
               className="nav-item-btn"
@@ -880,16 +891,6 @@ export default function App() {
 
           {/* Quick Utility Actions */}
           <div className="nav-util-group">
-            {/* Sunnah Library quick toggle */}
-            <button
-              className="icon-circle-btn"
-              onClick={() => setIsLibraryOpen(true)}
-              aria-label="Open Sunnah Adhkar Library"
-              title="Sunnah Adhkar Presets Library"
-            >
-              <HiBookOpen style={{ color: '#a78bfa' }} />
-            </button>
-
             {/* Sound Toggle */}
             <button
               className={`icon-circle-btn ${soundEnabled ? 'sound-on' : ''}`}
@@ -936,15 +937,8 @@ export default function App() {
         </div>
 
         <div className="counter-tabs-actions">
-          <button
-            className="secondary-tab-btn"
-            onClick={() => setIsLibraryOpen(true)}
-            title="Browse Sunnah Adhkar Library Presets"
-          >
-            <HiBookOpen /> Sunnah Library
-          </button>
           <button className="new-counter-btn" onClick={openNewCounterModal} title="Create Custom Dhikr Counter">
-            <HiPlus /> Custom Zikr
+            <HiPlus /> <span className="new-btn-text">Custom Zikr</span>
           </button>
         </div>
       </nav>
