@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
 import {
-  HiBell,
   HiBellAlert,
   HiXMark,
   HiClock,
   HiSun,
   HiMoon,
   HiSparkles,
-  HiSpeakerWave,
-  HiCheckCircle
+  HiSpeakerWave
 } from 'react-icons/hi2';
 import { soundFx } from '../utils/audio';
 
 export default function DhikrRemindersModal({
-  isOpen,
+  isOpen = true,
   onClose,
   reminderSettings,
   onSaveSettings,
-  onTriggerTestNotification
+  onTriggerTestNotification,
+  isPage = true
 }) {
-  if (!isOpen) return null;
-
   const [form, setForm] = useState(() => ({
     enabled: reminderSettings?.enabled ?? true,
     intervalMinutes: reminderSettings?.intervalMinutes ?? 30,
@@ -34,6 +31,8 @@ export default function DhikrRemindersModal({
   const [permStatus, setPermStatus] = useState(() => {
     return typeof Notification !== 'undefined' ? Notification.permission : 'unsupported';
   });
+
+  if (!isOpen && !isPage) return null;
 
   const requestNotificationPermission = async () => {
     if (typeof Notification === 'undefined') {
@@ -65,8 +64,8 @@ export default function DhikrRemindersModal({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content reminders-modal" onClick={e => e.stopPropagation()}>
+    <div className={isPage ? "page-view-container" : "modal-backdrop"} onClick={isPage ? undefined : onClose}>
+      <div className={isPage ? "page-view-card reminders-modal" : "modal-content reminders-modal"} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

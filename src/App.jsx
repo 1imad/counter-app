@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
   HiPlus,
@@ -12,17 +13,16 @@ import {
   HiArrowUturnLeft,
   HiChartBar,
   HiFlag,
-  HiPlusCircle,
-  HiFire,
   HiClock,
   HiTrash,
   HiPencilSquare,
   HiXMark,
-  HiCheck,
   HiCalendarDays,
   HiBellAlert,
   HiBookOpen,
-  HiHeart
+  HiHeart,
+  HiArrowRight,
+  HiExclamationTriangle
 } from 'react-icons/hi2';
 import { FaHeadphones, FaBookQuran } from 'react-icons/fa6';
 import { soundFx } from './utils/audio';
@@ -122,6 +122,9 @@ const COLOR_THEMES = [
 ];
 
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Load counters from local storage or defaults with automatic daily rollover reset
   const [counters, setCounters] = useState(() => {
     const today = getLocalDateKey();
@@ -259,16 +262,37 @@ export default function App() {
   // Live Toast for Reminders
   const [activeToastReminder, setActiveToastReminder] = useState(null);
 
-  // Modals
+  // Dialogs
   const [isNewCounterModalOpen, setIsNewCounterModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [isRemindersOpen, setIsRemindersOpen] = useState(false);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [isQuranOpen, setIsQuranOpen] = useState(false);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isEarbudActive, setIsEarbudActive] = useState(false);
-  const [isEarbudModalOpen, setIsEarbudModalOpen] = useState(false);
+
+  // Quran Last Read Progress for Home Screen Resume & Nav Badge
+  const [quranLastRead, setQuranLastRead] = useState(() => {
+    try {
+      const saved = localStorage.getItem('noor_quran_last_read');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Keep Quran progress refreshed when route changes or window gains focus
+  useEffect(() => {
+    const refreshQuranProgress = () => {
+      try {
+        const saved = localStorage.getItem('noor_quran_last_read');
+        setQuranLastRead(saved ? JSON.parse(saved) : null);
+      } catch {
+        // Ignored
+      }
+    };
+
+    refreshQuranProgress();
+
+    window.addEventListener('focus', refreshQuranProgress);
+    return () => window.removeEventListener('focus', refreshQuranProgress);
+  }, [location.pathname]);
 
   const [modalForm, setModalForm] = useState({
     title: '',
@@ -455,7 +479,7 @@ export default function App() {
           origin: { y: 0.6 },
           colors: ['#06b6d4', '#10b981', '#8b5cf6', '#f59e0b']
         });
-      } catch (e) {
+      } catch {
         // Optional
       }
     }
@@ -625,10 +649,11 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isAutoTicking, autoTickSpeed, currentCounter.step, updateValue]);
 
-  // Keyboard Shortcuts
+  // Keyboard Shortcuts (active when on counter route)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (location.pathname !== '/zikr' && location.pathname !== '/') return;
 
       if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
@@ -650,7 +675,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleIncrement, handleDecrement, currentCounter]);
+  }, [handleIncrement, handleDecrement, currentCounter, location.pathname]);
 
   // Send Notification Helper
   const sendDhikrNotification = useCallback((dhikrType = 'all', customTitle = null, customBody = null) => {
@@ -805,7 +830,7 @@ export default function App() {
 
     setCounters(prev => [...prev, newCounter]);
     setActiveId(newCounter.id);
-    setIsLibraryOpen(false);
+    navigate('/zikr');
     soundFx.playClick('up');
   };
 
@@ -826,7 +851,7 @@ export default function App() {
 
     setCounters(prev => [newCounter, ...prev]);
     setActiveId(newCounter.id);
-    setIsQuranOpen(false);
+    navigate('/zikr');
     soundFx.playCelebration();
   };
 
@@ -945,143 +970,213 @@ export default function App() {
 
       {/* Header Bar */}
       <header className="app-header">
-        <div className="brand-section">
+        <Link to="/zikr" className="brand-section brand-link" title="NoorTasbih Home">
           <div className="brand-icon-box" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}>
             <HiHeart />
           </div>
-          <div>
+          <div className="brand-text-col">
             <h1 className="brand-title">NoorTasbih</h1>
-            <p className="brand-subtitle">Digital Tasbeeh & Adhkar Tracker</p>
+            <p className="brand-subtitle">Digital Tasbeeh & Adhkar</p>
           </div>
-        </div>
+        </Link>
 
-        <div className="header-controls">
-          {/* Feature Navigation Pill Group */}
-          <nav className="nav-pill-group" aria-label="Feature navigation">
-            {/* Calendar */}
-            <button
-              className="nav-item-btn"
-              onClick={() => setIsCalendarOpen(true)}
-              aria-label="Open Adhkar Calendar"
-              title="Adhkar Calendar & Daily Habits"
-            >
-              <HiCalendarDays className="nav-icon" style={{ color: '#38bdf8' }} />
-              <span className="nav-item-label">Calendar</span>
-            </button>
+        {/* Feature Navigation Pill Group (Centered) */}
+        <nav className="nav-pill-group" aria-label="Feature navigation">
+          {/* Tasbeeh Counter */}
+          <NavLink
+            to="/zikr"
+            className={({ isActive }) => `nav-item-btn tasbeeh-route ${isActive ? 'active-nav-route' : ''}`}
+            aria-label="Tasbeeh Counter"
+            title="Tasbeeh & Zikr Counter"
+          >
+            <HiHeart className="nav-icon" />
+            <span className="nav-item-label">Tasbeeh</span>
+          </NavLink>
 
-            {/* Reminders */}
-            <button
-              className="nav-item-btn"
-              onClick={() => setIsRemindersOpen(true)}
-              aria-label="Open Zikr Reminders"
-              title="Daily Zikr & Askar Reminders"
-            >
-              <HiBellAlert className="nav-icon" style={{ color: '#f59e0b' }} />
-              <span className="nav-item-label">Reminders</span>
-              {reminderSettings.enabled && <span className="nav-dot-indicator green" title="Reminders active" />}
-            </button>
+          {/* The Noble Quran */}
+          <NavLink
+            to="/quran"
+            className={({ isActive }) => `nav-item-btn quran-route ${isActive ? 'active-nav-route' : ''}`}
+            aria-label="Open The Noble Quran"
+            title={quranLastRead ? `Resume Quran: Surah ${quranLastRead.surahEnglishName} (Ayah ${quranLastRead.ayahNumberInSurah})` : "The Noble Quran"}
+          >
+            <FaBookQuran className="nav-icon" />
+            <span className="nav-item-label">Quran</span>
+            {quranLastRead && <span className="nav-dot-indicator green" title={`Saved: ${quranLastRead.surahEnglishName} : ${quranLastRead.ayahNumberInSurah}`} />}
+          </NavLink>
 
-            {/* Earbuds Tap Trigger */}
-            <button
-              className={`nav-item-btn ${isEarbudActive ? 'active-earbud' : ''}`}
-              onClick={() => setIsEarbudModalOpen(true)}
-              aria-label="Wireless Earbud Tap Mode"
-              title={isEarbudActive ? "Earbud Tap Mode: Active" : "Connect Wireless Earbuds"}
-            >
-              <FaHeadphones className="nav-icon" style={{ color: isEarbudActive ? '#67e8f9' : '#38bdf8' }} />
-              <span className="nav-item-label">{isEarbudActive ? 'Earbuds ON' : 'Earbuds'}</span>
-              {isEarbudActive && <span className="nav-dot-indicator cyan pulse" />}
-            </button>
+          {/* Analytics */}
+          <NavLink
+            to="/analytics"
+            className={({ isActive }) => `nav-item-btn analytics-route ${isActive ? 'active-nav-route' : ''}`}
+            aria-label="View Session Analytics"
+            title="Session Analytics & Recitation History"
+          >
+            <HiChartBar className="nav-icon" />
+            <span className="nav-item-label">Analytics</span>
+          </NavLink>
 
-            {/* The Noble Quran */}
-            <button
-              className="nav-item-btn"
-              onClick={() => setIsQuranOpen(true)}
-              aria-label="Open The Noble Quran"
-              title="The Noble Quran (Arabic, Translation & Transliteration)"
-            >
-              <FaBookQuran className="nav-icon" style={{ color: '#10b981' }} />
-              <span className="nav-item-label">Quran</span>
-            </button>
+          {/* Calendar */}
+          <NavLink
+            to="/calendar"
+            className={({ isActive }) => `nav-item-btn calendar-route ${isActive ? 'active-nav-route' : ''}`}
+            aria-label="Open Adhkar Calendar"
+            title="Adhkar Calendar & Daily Habits"
+          >
+            <HiCalendarDays className="nav-icon" />
+            <span className="nav-item-label">Calendar</span>
+          </NavLink>
 
-            {/* Sunnah Library */}
-            <button
-              className="nav-item-btn"
-              onClick={() => setIsLibraryOpen(true)}
-              aria-label="Open Sunnah Adhkar Library"
-              title="Sunnah Adhkar Presets Library"
-            >
-              <HiBookOpen className="nav-icon" style={{ color: '#a78bfa' }} />
-              <span className="nav-item-label">Library</span>
-            </button>
+          {/* Reminders */}
+          <NavLink
+            to="/reminders"
+            className={({ isActive }) => `nav-item-btn reminders-route ${isActive ? 'active-nav-route' : ''}`}
+            aria-label="Open Zikr Reminders"
+            title="Daily Zikr & Askar Reminders"
+          >
+            <HiBellAlert className="nav-icon" />
+            <span className="nav-item-label">Reminders</span>
+            {reminderSettings.enabled && <span className="nav-dot-indicator green" title="Reminders active" />}
+          </NavLink>
 
-            {/* Analytics Trigger */}
-            <button
-              className="nav-item-btn"
-              onClick={() => setIsAnalyticsOpen(true)}
-              aria-label="View Session Analytics"
-              title="Session Analytics & Recitation History"
-            >
-              <HiChartBar className="nav-icon" style={{ color: '#ec4899' }} />
-              <span className="nav-item-label">Analytics</span>
-            </button>
-          </nav>
+          {/* Sunnah Library */}
+          <NavLink
+            to="/library"
+            className={({ isActive }) => `nav-item-btn library-route ${isActive ? 'active-nav-route' : ''}`}
+            aria-label="Open Sunnah Adhkar Library"
+            title="Sunnah Adhkar Presets Library"
+          >
+            <HiBookOpen className="nav-icon" />
+            <span className="nav-item-label">Library</span>
+          </NavLink>
 
-          <div className="nav-divider" aria-hidden="true" />
+          {/* Earbuds Tap Trigger */}
+          <NavLink
+            to="/earbuds"
+            className={({ isActive }) => `nav-item-btn earbuds-route ${isActive ? 'active-nav-route' : ''} ${isEarbudActive ? 'active-earbud' : ''}`}
+            aria-label="Wireless Earbud Tap Mode"
+            title={isEarbudActive ? "Earbud Tap Mode: Active" : "Connect Wireless Earbuds"}
+          >
+            <FaHeadphones className="nav-icon" />
+            <span className="nav-item-label">Earbuds</span>
+            {isEarbudActive && <span className="nav-dot-indicator cyan pulse" />}
+          </NavLink>
+        </nav>
 
-          {/* Quick Utility Actions */}
-          <div className="nav-util-group">
-            {/* Sound Toggle */}
-            <button
-              className={`icon-circle-btn ${soundEnabled ? 'sound-on' : ''}`}
-              onClick={handleToggleSound}
-              aria-label="Toggle Audio Sound Haptics"
-              title={soundEnabled ? "Audio Click: Sound ON" : "Audio Click: Muted"}
-            >
-              {soundEnabled ? <HiSpeakerWave /> : <HiSpeakerXMark />}
-            </button>
+        {/* Quick Utility Actions */}
+        <div className="header-actions">
+          {/* Sound Toggle */}
+          <button
+            className={`icon-circle-btn ${soundEnabled ? 'sound-on' : ''}`}
+            onClick={handleToggleSound}
+            aria-label="Toggle Audio Sound Haptics"
+            title={soundEnabled ? "Audio Click: Sound ON" : "Audio Click: Muted"}
+          >
+            {soundEnabled ? <HiSpeakerWave /> : <HiSpeakerXMark />}
+          </button>
 
-            {/* Reset Storage */}
-            <button
-              className="icon-circle-btn danger-hover"
-              onClick={handleClearStorage}
-              aria-label="Reset Storage to Defaults"
-              title="Reset counters to Sunnah defaults"
-            >
-              <HiArrowPath />
-            </button>
-          </div>
+          {/* Reset Storage */}
+          <button
+            className="icon-circle-btn danger-hover"
+            onClick={handleClearStorage}
+            aria-label="Reset Storage to Defaults"
+            title="Reset counters to Sunnah defaults"
+          >
+            <HiArrowPath />
+          </button>
         </div>
       </header>
 
-      {/* Multi-Counter Tab Switcher */}
-      <nav className="counter-tabs-wrapper" aria-label="Dhikr Switcher">
-        <div className="counter-tabs-list">
-          {counters.map(counter => (
-            <button
-              key={counter.id}
-              className={`counter-tab ${counter.id === activeId ? 'selected' : ''}`}
-              onClick={() => {
-                setActiveId(counter.id);
-                soundFx.playClick('up');
-              }}
-              style={{
-                borderLeftColor: counter.accentColor,
-                borderLeftWidth: '3px'
-              }}
-            >
-              <span>{counter.title}</span>
-              <span className="tab-badge">{counter.value}</span>
-            </button>
-          ))}
-        </div>
+      {/* Client-side Routes */}
+      <Routes>
+        <Route path="/" element={<Navigate to="/zikr" replace />} />
 
-        <div className="counter-tabs-actions">
-          <button className="new-counter-btn" onClick={openNewCounterModal} title="Create Custom Dhikr Counter">
-            <HiPlus /> <span className="new-btn-text">Custom Zikr</span>
-          </button>
-        </div>
-      </nav>
+        {/* /zikr - Interactive Tasbeeh & Adhkar Counter Experience */}
+        <Route
+          path="/zikr"
+          element={
+            <>
+              {/* Multi-Counter Tab Switcher */}
+              <nav className="counter-tabs-wrapper" aria-label="Dhikr Switcher">
+                <div className="counter-tabs-list">
+                  {counters.map(counter => (
+                    <button
+                      key={counter.id}
+                      className={`counter-tab ${counter.id === activeId ? 'selected' : ''}`}
+                      onClick={() => {
+                        setActiveId(counter.id);
+                        soundFx.playClick('up');
+                      }}
+                      style={{
+                        borderLeftColor: counter.accentColor,
+                        borderLeftWidth: '3px'
+                      }}
+                    >
+                      <span>{counter.title}</span>
+                      <span className="tab-badge">{counter.value}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="counter-tabs-actions">
+                  <button className="new-counter-btn" onClick={openNewCounterModal} title="Create Custom Dhikr Counter">
+                    <HiPlus /> <span className="new-btn-text">Custom Zikr</span>
+                  </button>
+                </div>
+              </nav>
+
+              {/* Quick Resume Quran Bar (if progress is saved) */}
+              {quranLastRead && (
+                <div
+                  className="home-quran-resume-banner"
+                  onClick={() => {
+                    if (quranLastRead?.surahNumber) {
+                      navigate(`/quran/${quranLastRead.surahNumber}`);
+                    } else {
+                      navigate('/quran');
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="home-resume-left">
+                    <div className="home-resume-icon">
+                      <FaBookQuran />
+                    </div>
+                    <div className="home-resume-details">
+                      <div className="home-resume-kicker">
+                        <span>CONTINUE READING QURAN</span>
+                        {quranLastRead.updatedAt && (
+                          <span className="home-resume-time">
+                            <HiClock /> {new Date(quranLastRead.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
+                      <div className="home-resume-title">
+                        Surah {quranLastRead.surahEnglishName} ({quranLastRead.surahArabicName})
+                      </div>
+                      <div className="home-resume-meta">
+                        Ayah {quranLastRead.ayahNumberInSurah} of {quranLastRead.totalAyahs} • Juz {quranLastRead.juz} • Page {quranLastRead.page}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    className="home-resume-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (quranLastRead?.surahNumber) {
+                        navigate(`/quran/${quranLastRead.surahNumber}`);
+                      } else {
+                        navigate('/quran');
+                      }
+                    }}
+                    title="Resume reading Quran where you left off"
+                  >
+                    <span>Resume</span>
+                    <HiArrowRight />
+                  </button>
+                </div>
+              )}
 
       {/* Main App Grid */}
       <main className="app-grid">
@@ -1158,7 +1253,7 @@ export default function App() {
               <button
                 type="button"
                 className="display-label-pill"
-                onClick={() => setIsEarbudModalOpen(true)}
+                onClick={() => navigate('/earbuds')}
                 style={{
                   background: 'rgba(6, 182, 212, 0.2)',
                   borderColor: 'rgba(6, 182, 212, 0.5)',
@@ -1341,7 +1436,7 @@ export default function App() {
 
             <button
               className="util-btn"
-              onClick={() => setIsAnalyticsOpen(true)}
+              onClick={() => navigate('/analytics')}
               title="View session analytics & recitations history"
             >
               <HiChartBar />
@@ -1364,7 +1459,7 @@ export default function App() {
       </main>
 
       {/* Keyboard Shortcuts Helper Banner */}
-      <footer className="keyboard-guide-banner">
+      <div className="keyboard-guide-banner">
         <div className="key-guide-item">
           <span className="key-badge">Space</span> or <span className="key-badge">↑</span>
           <span>Increment</span>
@@ -1385,55 +1480,115 @@ export default function App() {
           <span className="key-badge">M</span>
           <span>Toggle Audio Mute</span>
         </div>
+      </div>
+            </>
+          }
+        />
+
+        {/* The Noble Quran Reader Route */}
+        <Route
+          path="/quran"
+          element={
+            <QuranModal
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              onAddDhikrFromAyah={handleAddDhikrFromAyah}
+            />
+          }
+        />
+        <Route
+          path="/quran/:surahId"
+          element={
+            <QuranModal
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              onAddDhikrFromAyah={handleAddDhikrFromAyah}
+            />
+          }
+        />
+
+        {/* Analytics & History Route */}
+        <Route
+          path="/analytics"
+          element={
+            <DhikrAnalyticsModal
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              stats={stats}
+              history={history}
+              onClearHistory={() => setHistory([])}
+            />
+          }
+        />
+
+        {/* Adhkar Habit Calendar Route */}
+        <Route
+          path="/calendar"
+          element={
+            <DhikrCalendar
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              calendarData={calendarData}
+            />
+          }
+        />
+
+        {/* Daily Adhkar Reminders Route */}
+        <Route
+          path="/reminders"
+          element={
+            <DhikrRemindersModal
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              reminderSettings={reminderSettings}
+              onSaveSettings={setReminderSettings}
+              onTriggerTestNotification={sendDhikrNotification}
+            />
+          }
+        />
+
+        {/* Sunnah Presets Library Route */}
+        <Route
+          path="/library"
+          element={
+            <DhikrPresetsLibrary
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              onAddPreset={handleAddPreset}
+            />
+          }
+        />
+
+        {/* Wireless Earbuds Mode Route */}
+        <Route
+          path="/earbuds"
+          element={
+            <EarbudModal
+              isPage={true}
+              onClose={() => navigate('/zikr')}
+              isEarbudActive={isEarbudActive}
+              onToggleEarbudMode={handleToggleEarbudMode}
+              onTestClick={() => updateValue(currentCounter.step || 1, 'Simulated Earbud Tap')}
+            />
+          }
+        />
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<Navigate to="/zikr" replace />} />
+      </Routes>
+
+      {/* Site Disclaimer Footer */}
+      <footer className="site-disclaimer-footer">
+        <div className="disclaimer-inner">
+          <div className="disclaimer-badge">
+            <HiExclamationTriangle className="disclaimer-icon" />
+            <span>AI Disclaimer</span>
+          </div>
+          <p className="disclaimer-text">
+            This website is built using an AI agent and it can make mistakes. Please verify the information at your end.
+          </p>
+        </div>
       </footer>
-
-      {/* 📅 Dhikr Calendar Modal */}
-      <DhikrCalendar
-        isOpen={isCalendarOpen}
-        onClose={() => setIsCalendarOpen(false)}
-        calendarData={calendarData}
-      />
-
-      {/* 🔔 Reminders Settings Modal */}
-      <DhikrRemindersModal
-        isOpen={isRemindersOpen}
-        onClose={() => setIsRemindersOpen(false)}
-        reminderSettings={reminderSettings}
-        onSaveSettings={newSettings => setReminderSettings(newSettings)}
-        onTriggerTestNotification={dhikrType => sendDhikrNotification(dhikrType)}
-      />
-
-      {/* 📖 Sunnah Presets Library Modal */}
-      <DhikrPresetsLibrary
-        isOpen={isLibraryOpen}
-        onClose={() => setIsLibraryOpen(false)}
-        onAddPreset={handleAddPreset}
-      />
-
-      {/* 📖 The Noble Quran Modal */}
-      <QuranModal
-        isOpen={isQuranOpen}
-        onClose={() => setIsQuranOpen(false)}
-        onAddDhikrFromAyah={handleAddDhikrFromAyah}
-      />
-
-      {/* 📊 Session Analytics Modal */}
-      <DhikrAnalyticsModal
-        isOpen={isAnalyticsOpen}
-        onClose={() => setIsAnalyticsOpen(false)}
-        stats={stats}
-        history={history}
-        onClearHistory={() => setHistory([])}
-      />
-
-      {/* 🎧 Wireless Earbud Tasbeeh Modal */}
-      <EarbudModal
-        isOpen={isEarbudModalOpen}
-        onClose={() => setIsEarbudModalOpen(false)}
-        isEarbudActive={isEarbudActive}
-        onToggleEarbudMode={handleToggleEarbudMode}
-        onTestClick={() => updateValue(currentCounter.step || 1, 'Simulated Earbud Tap')}
-      />
 
       {/* Modal: Create Custom Counter */}
       {isNewCounterModalOpen && (

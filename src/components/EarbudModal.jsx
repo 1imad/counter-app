@@ -1,26 +1,21 @@
 import React from 'react';
-import {
-  HiXMark,
-  HiSparkles,
-  HiCheckCircle,
-  HiSpeakerWave,
-  HiDevicePhoneMobile
-} from 'react-icons/hi2';
+import { HiXMark } from 'react-icons/hi2';
 import { FaHeadphones, FaBluetooth } from 'react-icons/fa6';
 import { soundFx } from '../utils/audio';
 
 export default function EarbudModal({
-  isOpen,
+  isOpen = true,
   onClose,
   isEarbudActive,
   onToggleEarbudMode,
-  onTestClick
+  onTestClick,
+  isPage = true
 }) {
-  if (!isOpen) return null;
+  if (!isOpen && !isPage) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content earbud-modal" onClick={e => e.stopPropagation()}>
+    <div className={isPage ? "page-view-container" : "modal-backdrop"} onClick={isPage ? undefined : onClose}>
+      <div className={isPage ? "page-view-card earbud-modal" : "modal-content earbud-modal"} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

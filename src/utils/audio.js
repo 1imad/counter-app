@@ -53,7 +53,7 @@ class SoundEngine {
 
       osc.start(now);
       osc.stop(now + (type === 'reset' ? 0.19 : 0.09));
-    } catch (e) {
+    } catch {
       // Audio context might fail silently if autoplay blocked
     }
   }
@@ -80,7 +80,7 @@ class SoundEngine {
         osc.start(now);
         osc.stop(now + 0.26);
       });
-    } catch (e) {
+    } catch {
       // Ignore audio error
     }
   }
@@ -107,7 +107,7 @@ class SoundEngine {
         osc.start(now);
         osc.stop(now + 0.65);
       });
-    } catch (e) {
+    } catch {
       // Ignore audio error
     }
   }

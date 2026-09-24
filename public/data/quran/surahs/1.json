@@ -17,7 +17,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "شروع الله کا نام لے کر جو بڑا مہربان نہایت رحم والا ہے"
     },
     {
       "number": 2,
@@ -30,7 +31,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "سب طرح کی تعریف خدا ہی کو (سزاوار) ہے جو تمام مخلوقات کا پروردگار ہے"
     },
     {
       "number": 3,
@@ -43,7 +45,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "بڑا مہربان نہایت رحم والا"
     },
     {
       "number": 4,
@@ -56,7 +59,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "انصاف کے دن کا حاکم"
     },
     {
       "number": 5,
@@ -69,7 +73,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "(اے پروردگار) ہم تیری ہی عبادت کرتے ہیں اور تجھ ہی سے مدد مانگتے ہیں"
     },
     {
       "number": 6,
@@ -82,7 +87,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "ہم کو سیدھے رستے چلا"
     },
     {
       "number": 7,
@@ -95,7 +101,8 @@
       "page": 1,
       "ruku": 1,
       "hizbQuarter": 1,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "ان لوگوں کے رستے جن پر تو اپنا فضل وکرم کرتا رہا نہ ان کے جن پر غصے ہوتا رہا اور نہ گمراہوں کے"
     }
   ]
 }

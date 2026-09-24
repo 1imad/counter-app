@@ -17,7 +17,8 @@
       "page": 603,
       "ruku": 551,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "(اے پیغمبر ان منکران اسلام سے) کہہ دو کہ اے کافرو!"
     },
     {
       "number": 6209,
@@ -30,7 +31,8 @@
       "page": 603,
       "ruku": 551,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "جن (بتوں) کو تم پوچتے ہو ان کو میں نہیں پوجتا"
     },
     {
       "number": 6210,
@@ -43,7 +45,8 @@
       "page": 603,
       "ruku": 551,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور جس (خدا) کی میں عبادت کرتا ہوں اس کی تم عبادت نہیں کرتے"
     },
     {
       "number": 6211,
@@ -56,7 +59,8 @@
       "page": 603,
       "ruku": 551,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور (میں پھر کہتا ہوں کہ) جن کی تم پرستش کرتے ہوں ان کی میں پرستش کرنے والا نہیں ہوں"
     },
     {
       "number": 6212,
@@ -69,7 +73,8 @@
       "page": 603,
       "ruku": 551,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور نہ تم اس کی بندگی کرنے والے (معلوم ہوتے) ہو جس کی میں بندگی کرتا ہوں"
     },
     {
       "number": 6213,
@@ -82,7 +87,8 @@
       "page": 603,
       "ruku": 551,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "تم اپنے دین پر میں اپنے دین پر"
     }
   ]
 }

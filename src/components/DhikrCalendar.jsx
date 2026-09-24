@@ -11,13 +11,13 @@ import {
 
 import { getLocalDateKey } from '../utils/dateUtils';
 
-export default function DhikrCalendar({ isOpen, onClose, calendarData = {}, onSelectDate }) {
+export default function DhikrCalendar({ isOpen = true, onClose, calendarData = {}, isPage = true }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDayKey, setSelectedDayKey] = useState(() => {
     return getLocalDateKey();
   });
 
-  if (!isOpen) return null;
+  if (!isOpen && !isPage) return null;
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -113,8 +113,8 @@ export default function DhikrCalendar({ isOpen, onClose, calendarData = {}, onSe
   const selectedDayData = calendarData[selectedDayKey] || null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content calendar-modal" onClick={e => e.stopPropagation()}>
+    <div className={isPage ? "page-view-container" : "modal-backdrop"} onClick={isPage ? undefined : onClose}>
+      <div className={isPage ? "page-view-card calendar-modal" : "modal-content calendar-modal"} onClick={e => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

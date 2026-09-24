@@ -17,7 +17,8 @@
       "page": 602,
       "ruku": 550,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "(اے محمدﷺ) ہم نے تم کو کوثر عطا فرمائی ہے"
     },
     {
       "number": 6206,
@@ -30,7 +31,8 @@
       "page": 602,
       "ruku": 550,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "تو اپنے پروردگار کے لیے نماز پڑھا کرو اور قربانی دیا کرو"
     },
     {
       "number": 6207,
@@ -43,7 +45,8 @@
       "page": 602,
       "ruku": 550,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "کچھ شک نہیں کہ تمہارا دشمن ہی بےاولاد رہے گا"
     }
   ]
 }

@@ -17,7 +17,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "بھلا تم نے اس شخص کو دیکھا جو (روزِ) جزا کو جھٹلاتا ہے؟"
     },
     {
       "number": 6199,
@@ -30,7 +31,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "یہ وہی (بدبخت) ہے، جو یتیم کو دھکے دیتا ہے"
     },
     {
       "number": 6200,
@@ -43,7 +45,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور فقیر کو کھانا کھلانے کے لیے (لوگوں کو) ترغیب نہیں دیتا"
     },
     {
       "number": 6201,
@@ -56,7 +59,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "تو ایسے نمازیوں کی خرابی ہے"
     },
     {
       "number": 6202,
@@ -69,7 +73,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "جو نماز کی طرف سے غافل رہتے ہیں"
     },
     {
       "number": 6203,
@@ -82,7 +87,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "جو ریا کاری کرتے ہیں"
     },
     {
       "number": 6204,
@@ -95,7 +101,8 @@
       "page": 602,
       "ruku": 549,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور برتنے کی چیزیں عاریتہً نہیں دیتے"
     }
   ]
 }

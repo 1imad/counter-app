@@ -3,23 +3,22 @@ import {
   HiChartBar,
   HiClock,
   HiXMark,
-  HiArrowTrendingUp,
-  HiArrowTrendingDown,
   HiTrash
 } from 'react-icons/hi2';
 
 export default function DhikrAnalyticsModal({
-  isOpen,
+  isOpen = true,
   onClose,
   stats,
   history = [],
-  onClearHistory
+  onClearHistory,
+  isPage = true
 }) {
-  if (!isOpen) return null;
+  if (!isOpen && !isPage) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content analytics-modal" onClick={e => e.stopPropagation()}>
+    <div className={isPage ? "page-view-container" : "modal-backdrop"} onClick={isPage ? undefined : onClose}>
+      <div className={isPage ? "page-view-card analytics-modal" : "modal-content analytics-modal"} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

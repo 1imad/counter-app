@@ -88,7 +88,7 @@ class EarbudMediaController {
             { src: '/favicon.svg', sizes: '192x192', type: 'image/svg+xml' }
           ]
         });
-      } catch (e) {
+      } catch {
         // Optional
       }
     }
@@ -107,7 +107,7 @@ class EarbudMediaController {
         navigator.mediaSession.setActionHandler('previoustrack', null);
         navigator.mediaSession.setActionHandler('seekforward', null);
         navigator.mediaSession.setActionHandler('seekbackward', null);
-      } catch (e) {
+      } catch {
         // Optional
       }
     }

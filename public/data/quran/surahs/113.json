@@ -17,7 +17,8 @@
       "page": 604,
       "ruku": 555,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "کہو کہ میں صبح کے پروردگار کی پناہ مانگتا ہوں"
     },
     {
       "number": 6227,
@@ -30,7 +31,8 @@
       "page": 604,
       "ruku": 555,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "ہر چیز کی بدی سے جو اس نے پیدا کی"
     },
     {
       "number": 6228,
@@ -43,7 +45,8 @@
       "page": 604,
       "ruku": 555,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور شب تاریکی کی برائی سے جب اس کااندھیرا چھا جائے"
     },
     {
       "number": 6229,
@@ -56,7 +59,8 @@
       "page": 604,
       "ruku": 555,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور گنڈوں پر (پڑھ پڑھ کر) پھونکنے والیوں کی برائی سے"
     },
     {
       "number": 6230,
@@ -69,7 +73,8 @@
       "page": 604,
       "ruku": 555,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "اور حسد کرنے والے کی برائی سے جب حسد کرنے لگے"
     }
   ]
 }

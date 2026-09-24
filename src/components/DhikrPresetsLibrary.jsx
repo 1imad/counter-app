@@ -2,8 +2,7 @@ import React from 'react';
 import {
   HiBookOpen,
   HiXMark,
-  HiPlus,
-  HiSparkles
+  HiPlus
 } from 'react-icons/hi2';
 
 export const SUNNAH_DHIKR_PRESETS = [
@@ -99,12 +98,12 @@ export const SUNNAH_DHIKR_PRESETS = [
   }
 ];
 
-export default function DhikrPresetsLibrary({ isOpen, onClose, onAddPreset }) {
-  if (!isOpen) return null;
+export default function DhikrPresetsLibrary({ isOpen = true, onClose, onAddPreset, isPage = true }) {
+  if (!isOpen && !isPage) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content presets-modal" onClick={e => e.stopPropagation()}>
+    <div className={isPage ? "page-view-container" : "modal-backdrop"} onClick={isPage ? undefined : onClose}>
+      <div className={isPage ? "page-view-card presets-modal" : "modal-content presets-modal"} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div className="brand-icon-box" style={{ width: '36px', height: '36px', fontSize: '1.1rem', background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}>

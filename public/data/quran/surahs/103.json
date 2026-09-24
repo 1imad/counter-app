@@ -17,7 +17,8 @@
       "page": 601,
       "ruku": 545,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "عصر کی قسم"
     },
     {
       "number": 6178,
@@ -30,7 +31,8 @@
       "page": 601,
       "ruku": 545,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "کہ انسان نقصان میں ہے"
     },
     {
       "number": 6179,
@@ -43,7 +45,8 @@
       "page": 601,
       "ruku": 545,
       "hizbQuarter": 240,
-      "sajda": false
+      "sajda": false,
+      "urduTranslation": "مگر وہ لوگ جو ایمان لائے اور نیک عمل کرتے رہے اور آپس میں حق (بات) کی تلقین اور صبر کی تاکید کرتے رہے"
     }
   ]
 }
