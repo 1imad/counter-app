@@ -22,7 +22,8 @@ import {
   HiBookOpen,
   HiHeart,
   HiArrowRight,
-  HiExclamationTriangle
+  HiExclamationTriangle,
+  HiArrowDownTray
 } from 'react-icons/hi2';
 import { FaHeadphones, FaBookQuran } from 'react-icons/fa6';
 import { soundFx } from './utils/audio';
@@ -293,6 +294,48 @@ export default function App() {
     window.addEventListener('focus', refreshQuranProgress);
     return () => window.removeEventListener('focus', refreshQuranProgress);
   }, [location.pathname]);
+
+  // PWA Install Prompt State
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setIsAppInstalled(true);
+    }
+
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setInstallPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!installPrompt) return;
+    try {
+      installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        setIsAppInstalled(true);
+      }
+      setInstallPrompt(null);
+    } catch (err) {
+      console.warn('Install prompt error:', err);
+    }
+  };
 
   const [modalForm, setModalForm] = useState({
     title: '',
@@ -1065,6 +1108,19 @@ export default function App() {
 
         {/* Quick Utility Actions */}
         <div className="header-actions">
+          {/* PWA Install Button (shows when browser triggers install prompt or standalone ready) */}
+          {installPrompt && !isAppInstalled && (
+            <button
+              className="pwa-install-pill-btn"
+              onClick={handleInstallApp}
+              title="Install NoorTasbih on your device"
+              aria-label="Install App"
+            >
+              <HiArrowDownTray />
+              <span>Install App</span>
+            </button>
+          )}
+
           {/* Sound Toggle */}
           <button
             className={`icon-circle-btn ${soundEnabled ? 'sound-on' : ''}`}
