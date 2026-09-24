@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   HiXMark,
   HiMagnifyingGlass,
@@ -9,8 +9,10 @@ import {
   HiCheck,
   HiClipboardDocument,
   HiPlusCircle,
-  HiAdjustmentsHorizontal,
-  HiBookmark
+  HiBookmark,
+  HiOutlineDocumentText,
+  HiOutlineRectangleStack,
+  HiArrowTrendingUp
 } from 'react-icons/hi2';
 import { FaBookQuran } from 'react-icons/fa6';
 
@@ -31,12 +33,17 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
   const [surahsIndex, setSurahsIndex] = useState([]);
   const [selectedSurahNumber, setSelectedSurahNumber] = useState(null);
   const [currentSurahData, setCurrentSurahData] = useState(null);
+  const [currentAyahIndex, setCurrentAyahIndex] = useState(0);
+  const [targetAyahPosition, setTargetAyahPosition] = useState(null); // 'first' | 'last' | number
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all'); // 'all' | 'Meccan' | 'Medinan'
-  const [copiedAyahNum, setCopiedAyahNum] = useState(null);
+  const [copiedFeedback, setCopiedFeedback] = useState(false);
+  const [viewMode, setViewMode] = useState('ayah'); // 'ayah' (Ayat-by-Ayat) | 'surah' (Full Surah)
+  const [isJumpOpen, setIsJumpOpen] = useState(false);
+  const [jumpAyahInput, setJumpAyahInput] = useState('');
 
-  // Reading display preferences (persisted in localStorage)
+  // Reading display preferences
   const [showTranslation, setShowTranslation] = useState(() => {
     try {
       const saved = localStorage.getItem('noor_quran_show_translation');
@@ -58,9 +65,9 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
   const [arabicFontSize, setArabicFontSize] = useState(() => {
     try {
       const saved = localStorage.getItem('noor_quran_arabic_size');
-      return saved ? Number(saved) : 26;
+      return saved ? Number(saved) : 28;
     } catch {
-      return 26;
+      return 28;
     }
   });
 
@@ -88,15 +95,27 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
   useEffect(() => {
     if (!selectedSurahNumber) {
       setCurrentSurahData(null);
+      setCurrentAyahIndex(0);
       return;
     }
 
-    // Check in-memory cache
-    if (cacheRef.current.has(selectedSurahNumber)) {
-      setCurrentSurahData(cacheRef.current.get(selectedSurahNumber));
+    const applySurahData = (data) => {
+      setCurrentSurahData(data);
+      if (targetAyahPosition === 'last') {
+        setCurrentAyahIndex(Math.max(0, data.ayahs.length - 1));
+      } else if (typeof targetAyahPosition === 'number') {
+        setCurrentAyahIndex(Math.min(data.ayahs.length - 1, Math.max(0, targetAyahPosition)));
+      } else {
+        setCurrentAyahIndex(0);
+      }
+      setTargetAyahPosition(null);
       if (contentContainerRef.current) {
         contentContainerRef.current.scrollTop = 0;
       }
+    };
+
+    if (cacheRef.current.has(selectedSurahNumber)) {
+      applySurahData(cacheRef.current.get(selectedSurahNumber));
       return;
     }
 
@@ -105,17 +124,14 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
       .then(res => res.json())
       .then(data => {
         cacheRef.current.set(selectedSurahNumber, data);
-        setCurrentSurahData(data);
+        applySurahData(data);
         setIsLoading(false);
-        if (contentContainerRef.current) {
-          contentContainerRef.current.scrollTop = 0;
-        }
       })
       .catch(err => {
         console.error(`Failed to load Surah ${selectedSurahNumber}`, err);
         setIsLoading(false);
       });
-  }, [selectedSurahNumber]);
+  }, [selectedSurahNumber, targetAyahPosition]);
 
   // Save preferences
   useEffect(() => {
@@ -142,6 +158,64 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
     }
   }, [arabicFontSize]);
 
+  // Active Ayah Object
+  const currentAyah = useMemo(() => {
+    if (!currentSurahData || !currentSurahData.ayahs) return null;
+    return currentSurahData.ayahs[currentAyahIndex] || currentSurahData.ayahs[0];
+  }, [currentSurahData, currentAyahIndex]);
+
+  // Navigation handlers
+  const handlePrevAyah = useCallback(() => {
+    if (!currentSurahData) return;
+
+    if (currentAyahIndex > 0) {
+      setCurrentAyahIndex(prev => prev - 1);
+      if (contentContainerRef.current) {
+        contentContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else if (selectedSurahNumber > 1) {
+      // Move to previous Surah, last Ayah
+      setTargetAyahPosition('last');
+      setSelectedSurahNumber(prev => prev - 1);
+    }
+  }, [currentSurahData, currentAyahIndex, selectedSurahNumber]);
+
+  const handleNextAyah = useCallback(() => {
+    if (!currentSurahData) return;
+
+    if (currentAyahIndex < currentSurahData.ayahs.length - 1) {
+      setCurrentAyahIndex(prev => prev + 1);
+      if (contentContainerRef.current) {
+        contentContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else if (selectedSurahNumber < 114) {
+      // Move to next Surah, first Ayah
+      setTargetAyahPosition('first');
+      setSelectedSurahNumber(prev => prev + 1);
+    }
+  }, [currentSurahData, currentAyahIndex, selectedSurahNumber]);
+
+  // Keyboard navigation (ArrowLeft & ArrowRight)
+  useEffect(() => {
+    if (!isOpen || !selectedSurahNumber) return;
+
+    const handleKeyDown = (e) => {
+      // Avoid intercepting input fields
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleNextAyah();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        handlePrevAyah();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedSurahNumber, handleNextAyah, handlePrevAyah]);
+
   // Filtered Surahs index
   const filteredSurahs = useMemo(() => {
     return surahsIndex.filter(surah => {
@@ -160,20 +234,24 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
     });
   }, [surahsIndex, filterType, searchQuery]);
 
-  // Copy Ayah text helper
+  // Copy Ayah text helper with full metadata
   const handleCopyAyah = (ayah, e) => {
-    e.stopPropagation();
-    const textToCopy = `${ayah.arabic}\n\n${ayah.transliteration}\n\n"${ayah.translation}"\n(Surah ${currentSurahData.englishName} ${currentSurahData.number}:${ayah.numberInSurah})`;
+    if (e) e.stopPropagation();
+    if (!ayah || !currentSurahData) return;
+
+    const sajdaText = ayah.sajda ? (ayah.sajda.obligatory ? ' [Sajdah Wajib]' : ' [Sajdah Recommended]') : '';
+    const textToCopy = `${ayah.arabic}\n\n${ayah.transliteration}\n\n"${ayah.translation}"\n\n— Surah ${currentSurahData.englishName} (${currentSurahData.name}) ${currentSurahData.number}:${ayah.numberInSurah} • Juz ${ayah.juz} • Page ${ayah.page} • Ruku ${ayah.ruku}${sajdaText}`;
+
     navigator.clipboard.writeText(textToCopy).then(() => {
-      setCopiedAyahNum(ayah.numberInSurah);
-      setTimeout(() => setCopiedAyahNum(null), 2000);
+      setCopiedFeedback(true);
+      setTimeout(() => setCopiedFeedback(false), 2000);
     });
   };
 
   // Turn Ayah into a Dhikr counter
   const handleMakeDhikr = (ayah, e) => {
-    e.stopPropagation();
-    if (onAddDhikrFromAyah) {
+    if (e) e.stopPropagation();
+    if (onAddDhikrFromAyah && currentSurahData && ayah) {
       onAddDhikrFromAyah({
         title: `${currentSurahData.englishName} : ${ayah.numberInSurah}`,
         arabic: ayah.arabic,
@@ -182,6 +260,18 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
         target: 33
       });
       onClose();
+    }
+  };
+
+  // Jump to specific Ayah
+  const handleJumpSubmit = (e) => {
+    e.preventDefault();
+    if (!currentSurahData) return;
+    const num = parseInt(jumpAyahInput, 10);
+    if (!isNaN(num) && num >= 1 && num <= currentSurahData.ayahs.length) {
+      setCurrentAyahIndex(num - 1);
+      setIsJumpOpen(false);
+      setJumpAyahInput('');
     }
   };
 
@@ -194,17 +284,22 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
         onClick={e => e.stopPropagation()}
         ref={contentContainerRef}
       >
-        {/* Header Bar */}
+        {/* ========================================================= */}
+        {/* MODAL HEADER                                              */}
+        {/* ========================================================= */}
         <div className="modal-header quran-modal-header">
           <div className="quran-header-left">
             {selectedSurahNumber ? (
               <button
                 className="quran-back-btn"
-                onClick={() => setSelectedSurahNumber(null)}
+                onClick={() => {
+                  setSelectedSurahNumber(null);
+                  setCurrentAyahIndex(0);
+                }}
                 title="Return to Surah list"
               >
                 <HiArrowLeft />
-                <span>All Surahs</span>
+                <span>Surahs</span>
               </button>
             ) : (
               <div className="brand-icon-box quran-icon-box">
@@ -240,7 +335,7 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
               <HiMagnifyingGlass className="search-icon" />
               <input
                 type="text"
-                placeholder="Search by Surah name (e.g., Yaseen, Mulk, Kahf) or number..."
+                placeholder="Search by Surah name (e.g. Yaseen, Mulk, Kahf, Baqara) or number..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="quran-search-input"
@@ -267,7 +362,10 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
                   <button
                     key={item.number}
                     className="quick-surah-chip"
-                    onClick={() => setSelectedSurahNumber(item.number)}
+                    onClick={() => {
+                      setTargetAyahPosition('first');
+                      setSelectedSurahNumber(item.number);
+                    }}
                   >
                     <span>{item.name}</span>
                   </button>
@@ -303,7 +401,10 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
                 <div
                   key={surah.number}
                   className="surah-card"
-                  onClick={() => setSelectedSurahNumber(surah.number)}
+                  onClick={() => {
+                    setTargetAyahPosition('first');
+                    setSelectedSurahNumber(surah.number);
+                  }}
                   role="button"
                   tabIndex={0}
                 >
@@ -336,13 +437,33 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 2: SURAH READING VIEW                                */}
+        {/* VIEW 2: SURAH READING VIEW (AYAT-BY-AYAT AS REQUESTED)    */}
         {/* ========================================================= */}
         {selectedSurahNumber && (
           <div className="quran-reader">
             {/* Reading Preferences Control Toolbar */}
             <div className="quran-reader-toolbar">
               <div className="reader-toggles">
+                {/* View Mode Toggle: Ayat-by-Ayat vs Full Surah */}
+                <div className="view-mode-pill">
+                  <button
+                    className={`mode-btn ${viewMode === 'ayah' ? 'active' : ''}`}
+                    onClick={() => setViewMode('ayah')}
+                    title="Verse-by-Verse focus mode"
+                  >
+                    <HiOutlineDocumentText />
+                    <span>Ayat Mode</span>
+                  </button>
+                  <button
+                    className={`mode-btn ${viewMode === 'surah' ? 'active' : ''}`}
+                    onClick={() => setViewMode('surah')}
+                    title="Continuous Surah reading mode"
+                  >
+                    <HiOutlineRectangleStack />
+                    <span>Full Surah</span>
+                  </button>
+                </div>
+
                 <label className="reader-toggle-label">
                   <input
                     type="checkbox"
@@ -358,11 +479,11 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
                     checked={showTranslation}
                     onChange={e => setShowTranslation(e.target.checked)}
                   />
-                  <span>English Translation</span>
+                  <span>Translation</span>
                 </label>
               </div>
 
-              {/* Font Size Adjuster & Navigation */}
+              {/* Font Size Adjuster & Surah Switcher */}
               <div className="reader-controls-right">
                 <div className="font-size-adjuster" title="Arabic Font Size">
                   <button
@@ -375,93 +496,197 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
                   <span className="font-size-indicator">{arabicFontSize}px</span>
                   <button
                     className="font-btn"
-                    onClick={() => setArabicFontSize(prev => Math.min(42, prev + 2))}
+                    onClick={() => setArabicFontSize(prev => Math.min(44, prev + 2))}
                     title="Larger Arabic font"
                   >
                     A+
                   </button>
                 </div>
 
-                {/* Prev / Next Surah Quick Jump */}
-                <div className="surah-pager-btns">
-                  <button
-                    className="pager-nav-btn"
-                    disabled={selectedSurahNumber <= 1}
-                    onClick={() => setSelectedSurahNumber(prev => Math.max(1, prev - 1))}
-                    title="Previous Surah"
-                  >
-                    <HiChevronLeft />
-                  </button>
-                  <button
-                    className="pager-nav-btn"
-                    disabled={selectedSurahNumber >= 114}
-                    onClick={() => setSelectedSurahNumber(prev => Math.min(114, prev + 1))}
-                    title="Next Surah"
-                  >
-                    <HiChevronRight />
-                  </button>
-                </div>
+                {/* Quick Surah Switcher Dropdown */}
+                <select
+                  className="surah-select-dropdown"
+                  value={selectedSurahNumber}
+                  onChange={e => {
+                    setTargetAyahPosition('first');
+                    setSelectedSurahNumber(Number(e.target.value));
+                  }}
+                  title="Switch to another Surah"
+                >
+                  {surahsIndex.map(s => (
+                    <option key={s.number} value={s.number}>
+                      {s.number}. {s.englishName} ({s.name})
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             {isLoading && (
               <div className="quran-loading-box">
                 <div className="quran-loading-spinner" />
-                <p>Loading Surah recitation text...</p>
+                <p>Loading recitation & verse data...</p>
               </div>
             )}
 
-            {!isLoading && currentSurahData && (
-              <div className="quran-surah-content">
-                {/* Surah Banner Card */}
-                <div className="surah-banner-card">
-                  <h2 className="banner-arabic-title">{currentSurahData.name}</h2>
-                  <h3 className="banner-english-title">
-                    Surah {currentSurahData.englishName} ({currentSurahData.englishNameTranslation})
-                  </h3>
-                  <div className="banner-details">
-                    <span>Surah #{currentSurahData.number}</span>
-                    <span>•</span>
-                    <span>{currentSurahData.revelationType} Revelation</span>
-                    <span>•</span>
-                    <span>{currentSurahData.numberOfAyahs} Verses</span>
-                  </div>
+            {!isLoading && currentSurahData && currentAyah && (
+              <>
+                {/* ================================================= */}
+                {/* MODE A: AYAT-BY-AYAT FOCUSED VIEW (PRIMARY MODE)  */}
+                {/* ================================================= */}
+                {viewMode === 'ayah' && (
+                  <div className="ayat-focus-container">
+                    {/* Top Prominent Ayah Navigation Bar */}
+                    <div className="ayah-nav-header">
+                      <button
+                        className="ayah-nav-btn prev-btn"
+                        onClick={handlePrevAyah}
+                        disabled={selectedSurahNumber === 1 && currentAyahIndex === 0}
+                        title="Go to Previous Verse (or press ← Left Arrow)"
+                      >
+                        <HiChevronLeft className="nav-arrow" />
+                        <span className="nav-label">Previous Ayah</span>
+                      </button>
 
-                  {/* Bismillah Banner (All Surahs except At-Tawbah #9 and Al-Fatihah #1 where it is Ayah 1) */}
-                  {currentSurahData.number !== 9 && currentSurahData.number !== 1 && (
-                    <div className="bismillah-block">
-                      <p className="bismillah-arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
-                      {showTransliteration && (
-                        <p className="bismillah-translit">Bismillaahir Rahmaanir Raheem</p>
-                      )}
-                      {showTranslation && (
-                        <p className="bismillah-trans">In the name of Allah, the Entirely Merciful, the Especially Merciful.</p>
-                      )}
+                      {/* Middle: Ayah Position & Quick Jump Button */}
+                      <div className="ayah-counter-badge">
+                        <button
+                          className="jump-trigger-btn"
+                          onClick={() => setIsJumpOpen(prev => !prev)}
+                          title="Click to jump directly to any verse number"
+                        >
+                          <span className="badge-highlight">Ayah {currentAyah.numberInSurah}</span>
+                          <span className="badge-total">of {currentSurahData.numberOfAyahs}</span>
+                        </button>
+
+                        {isJumpOpen && (
+                          <form className="jump-popover-form" onSubmit={handleJumpSubmit}>
+                            <input
+                              type="number"
+                              min="1"
+                              max={currentSurahData.numberOfAyahs}
+                              placeholder={`1 - ${currentSurahData.numberOfAyahs}`}
+                              value={jumpAyahInput}
+                              onChange={e => setJumpAyahInput(e.target.value)}
+                              className="jump-number-input"
+                              autoFocus
+                            />
+                            <button type="submit" className="jump-go-btn">Go</button>
+                          </form>
+                        )}
+                      </div>
+
+                      <button
+                        className="ayah-nav-btn next-btn"
+                        onClick={handleNextAyah}
+                        disabled={selectedSurahNumber === 114 && currentAyahIndex === currentSurahData.ayahs.length - 1}
+                        title="Go to Next Verse (or press → Right Arrow)"
+                      >
+                        <span className="nav-label">Next Ayah</span>
+                        <HiChevronRight className="nav-arrow" />
+                      </button>
                     </div>
-                  )}
-                </div>
 
-                {/* Ayahs List */}
-                <div className="ayahs-list">
-                  {currentSurahData.ayahs.map(ayah => (
-                    <div key={ayah.number} className="ayah-card">
-                      {/* Top Bar of Ayah */}
-                      <div className="ayah-card-header">
-                        <div className="ayah-badge">
-                          <span>Verse {ayah.numberInSurah}</span>
-                          {ayah.juz && <span className="ayah-submeta">Juz {ayah.juz} • Page {ayah.page}</span>}
+                    {/* Complete Ayah Metadata Information Card */}
+                    <div className="ayah-metadata-card">
+                      <div className="meta-item primary-meta">
+                        <span className="meta-icon">📖</span>
+                        <div className="meta-content">
+                          <span className="meta-title">Surah {currentSurahData.number}: {currentSurahData.englishName}</span>
+                          <span className="meta-sub">{currentSurahData.name} • {currentSurahData.englishNameTranslation}</span>
+                        </div>
+                      </div>
+
+                      <div className="meta-grid">
+                        <div className="meta-pill">
+                          <span className="meta-lbl">AYAH</span>
+                          <span className="meta-val highlight">{currentAyah.numberInSurah} / {currentSurahData.numberOfAyahs}</span>
                         </div>
 
-                        <div className="ayah-actions">
+                        <div className="meta-pill">
+                          <span className="meta-lbl">QURAN VERSE</span>
+                          <span className="meta-val">#{currentAyah.number} / 6236</span>
+                        </div>
+
+                        <div className="meta-pill">
+                          <span className="meta-lbl">PAGE</span>
+                          <span className="meta-val">{currentAyah.page || '—'}</span>
+                        </div>
+
+                        <div className="meta-pill">
+                          <span className="meta-lbl">JUZ</span>
+                          <span className="meta-val">Juz {currentAyah.juz || '—'}</span>
+                        </div>
+
+                        <div className="meta-pill">
+                          <span className="meta-lbl">RUKU</span>
+                          <span className="meta-val">Ruku {currentAyah.ruku || '—'}</span>
+                        </div>
+
+                        <div className="meta-pill">
+                          <span className="meta-lbl">MANZIL</span>
+                          <span className="meta-val">Manzil {currentAyah.manzil || '—'}</span>
+                        </div>
+
+                        <div className="meta-pill">
+                          <span className="meta-lbl">HIZB QUARTER</span>
+                          <span className="meta-val">{currentAyah.hizbQuarter || '—'}</span>
+                        </div>
+
+                        <div className="meta-pill">
+                          <span className="meta-lbl">REVELATION</span>
+                          <span className="meta-val">{currentSurahData.revelationType}</span>
+                        </div>
+
+                        {/* Sajdah Indicator */}
+                        <div className={`meta-pill ${currentAyah.sajda ? 'sajdah-active' : ''}`}>
+                          <span className="meta-lbl">SAJDAH</span>
+                          <span className="meta-val">
+                            {currentAyah.sajda ? (
+                              typeof currentAyah.sajda === 'object' && currentAyah.sajda.obligatory ? (
+                                <strong style={{ color: '#f59e0b' }}>۩ Obligatory (Wajib)</strong>
+                              ) : (
+                                <strong style={{ color: '#10b981' }}>۩ Recommended</strong>
+                              )
+                            ) : (
+                              'No Sajdah'
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bismillah Opening if Ayah 1 (except At-Tawbah and Al-Fatihah where it's ayah 1) */}
+                    {currentAyah.numberInSurah === 1 && currentSurahData.number !== 9 && currentSurahData.number !== 1 && (
+                      <div className="bismillah-block ayah-bismillah">
+                        <p className="bismillah-arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                        {showTransliteration && (
+                          <p className="bismillah-translit">Bismillaahir Rahmaanir Raheem</p>
+                        )}
+                        {showTranslation && (
+                          <p className="bismillah-trans">In the name of Allah, the Entirely Merciful, the Especially Merciful.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Main Active Ayah Focused Display Card */}
+                    <div className="focused-ayah-card">
+                      {/* Action Bar */}
+                      <div className="focused-card-top-actions">
+                        <div className="ayah-chip-tag">
+                          <span>Surah {currentSurahData.englishName} • Verse {currentAyah.numberInSurah}</span>
+                        </div>
+
+                        <div className="card-action-group">
                           <button
                             className="ayah-action-btn"
-                            onClick={e => handleCopyAyah(ayah, e)}
-                            title="Copy Ayah text"
+                            onClick={() => handleCopyAyah(currentAyah)}
+                            title="Copy full verse text and references"
                           >
-                            {copiedAyahNum === ayah.numberInSurah ? (
+                            {copiedFeedback ? (
                               <>
                                 <HiCheck style={{ color: '#10b981' }} />
-                                <span style={{ color: '#10b981' }}>Copied</span>
+                                <span style={{ color: '#10b981' }}>Copied!</span>
                               </>
                             ) : (
                               <>
@@ -474,7 +699,7 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
                           {onAddDhikrFromAyah && (
                             <button
                               className="ayah-action-btn tasbeeh-btn"
-                              onClick={e => handleMakeDhikr(ayah, e)}
+                              onClick={() => handleMakeDhikr(currentAyah)}
                               title="Turn this verse into a Tasbeeh counter"
                             >
                               <HiPlusCircle />
@@ -484,68 +709,154 @@ export default function QuranModal({ isOpen, onClose, onAddDhikrFromAyah }) {
                         </div>
                       </div>
 
-                      {/* Arabic Quranic Script */}
+                      {/* Large Quranic Arabic Text */}
                       <div
-                        className="ayah-arabic-text"
+                        className="ayah-arabic-text focused-arabic"
                         style={{ fontSize: `${arabicFontSize}px` }}
                       >
-                        {ayah.arabic}
-                        <span className="ayah-end-marker"> ۝{ayah.numberInSurah} </span>
+                        {currentAyah.arabic}
+                        <span className="ayah-end-marker"> ۝{currentAyah.numberInSurah} </span>
                       </div>
 
-                      {/* English Transliteration */}
-                      {showTransliteration && ayah.transliteration && (
-                        <div className="ayah-transliteration">
-                          <span className="ayah-lang-tag">TRANSLITERATION</span>
-                          <p>{ayah.transliteration}</p>
+                      {/* Transliteration */}
+                      {showTransliteration && currentAyah.transliteration && (
+                        <div className="ayah-transliteration focused-transliteration">
+                          <span className="ayah-lang-tag">TRANSLITERATION (PHONETIC READING)</span>
+                          <p>{currentAyah.transliteration}</p>
                         </div>
                       )}
 
                       {/* English Translation */}
-                      {showTranslation && ayah.translation && (
-                        <div className="ayah-translation">
-                          <span className="ayah-lang-tag">TRANSLATION (SAHIH INTERNATIONAL)</span>
-                          <p>{ayah.translation}</p>
+                      {showTranslation && currentAyah.translation && (
+                        <div className="ayah-translation focused-translation">
+                          <span className="ayah-lang-tag">ENGLISH TRANSLATION (SAHIH INTERNATIONAL)</span>
+                          <p>{currentAyah.translation}</p>
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
 
-                {/* Footer Navigation */}
-                <div className="surah-footer-nav">
-                  {selectedSurahNumber > 1 && (
-                    <button
-                      className="surah-nav-link-btn"
-                      onClick={() => setSelectedSurahNumber(prev => prev - 1)}
-                    >
-                      <HiChevronLeft />
-                      <span>Previous Surah</span>
-                    </button>
-                  )}
+                    {/* Bottom Floating Navigation Toolbar */}
+                    <div className="ayah-bottom-nav">
+                      <button
+                        className="bottom-nav-btn prev-btn"
+                        onClick={handlePrevAyah}
+                        disabled={selectedSurahNumber === 1 && currentAyahIndex === 0}
+                      >
+                        <HiChevronLeft />
+                        <span>Previous Ayah</span>
+                      </button>
 
-                  <button
-                    className="surah-nav-link-btn"
-                    onClick={() => {
-                      if (contentContainerRef.current) {
-                        contentContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                    }}
-                  >
-                    <span>↑ Back to Top</span>
-                  </button>
+                      <div className="nav-keyboard-guide">
+                        <span>Tip: Use <strong>← Left</strong> and <strong>Right →</strong> arrow keys to browse verses</span>
+                      </div>
 
-                  {selectedSurahNumber < 114 && (
-                    <button
-                      className="surah-nav-link-btn"
-                      onClick={() => setSelectedSurahNumber(prev => prev + 1)}
-                    >
-                      <span>Next Surah</span>
-                      <HiChevronRight />
-                    </button>
-                  )}
-                </div>
-              </div>
+                      <button
+                        className="bottom-nav-btn next-btn"
+                        onClick={handleNextAyah}
+                        disabled={selectedSurahNumber === 114 && currentAyahIndex === currentSurahData.ayahs.length - 1}
+                      >
+                        <span>Next Ayah</span>
+                        <HiChevronRight />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================================================= */}
+                {/* MODE B: FULL SURAH VIEW (OPTIONAL ALTERNATIVE)    */}
+                {/* ================================================= */}
+                {viewMode === 'surah' && (
+                  <div className="quran-surah-content">
+                    {/* Surah Banner Card */}
+                    <div className="surah-banner-card">
+                      <h2 className="banner-arabic-title">{currentSurahData.name}</h2>
+                      <h3 className="banner-english-title">
+                        Surah {currentSurahData.englishName} ({currentSurahData.englishNameTranslation})
+                      </h3>
+                      <div className="banner-details">
+                        <span>Surah #{currentSurahData.number}</span>
+                        <span>•</span>
+                        <span>{currentSurahData.revelationType} Revelation</span>
+                        <span>•</span>
+                        <span>{currentSurahData.numberOfAyahs} Verses</span>
+                      </div>
+
+                      {currentSurahData.number !== 9 && currentSurahData.number !== 1 && (
+                        <div className="bismillah-block">
+                          <p className="bismillah-arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                          {showTransliteration && (
+                            <p className="bismillah-translit">Bismillaahir Rahmaanir Raheem</p>
+                          )}
+                          {showTranslation && (
+                            <p className="bismillah-trans">In the name of Allah, the Entirely Merciful, the Especially Merciful.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Ayahs List */}
+                    <div className="ayahs-list">
+                      {currentSurahData.ayahs.map(ayah => (
+                        <div key={ayah.number} className="ayah-card">
+                          <div className="ayah-card-header">
+                            <div className="ayah-badge">
+                              <span>Verse {ayah.numberInSurah}</span>
+                              {ayah.juz && <span className="ayah-submeta">Juz {ayah.juz} • Page {ayah.page} • Ruku {ayah.ruku}</span>}
+                              {ayah.sajda && (
+                                <span className="sajda-tag">۩ Sajdah</span>
+                              )}
+                            </div>
+
+                            <div className="ayah-actions">
+                              <button
+                                className="ayah-action-btn"
+                                onClick={e => handleCopyAyah(ayah, e)}
+                                title="Copy Ayah text"
+                              >
+                                <HiClipboardDocument />
+                                <span>Copy</span>
+                              </button>
+
+                              {onAddDhikrFromAyah && (
+                                <button
+                                  className="ayah-action-btn tasbeeh-btn"
+                                  onClick={e => handleMakeDhikr(ayah, e)}
+                                  title="Turn this verse into a Tasbeeh counter"
+                                >
+                                  <HiPlusCircle />
+                                  <span>Count as Tasbeeh</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div
+                            className="ayah-arabic-text"
+                            style={{ fontSize: `${arabicFontSize}px` }}
+                          >
+                            {ayah.arabic}
+                            <span className="ayah-end-marker"> ۝{ayah.numberInSurah} </span>
+                          </div>
+
+                          {showTransliteration && ayah.transliteration && (
+                            <div className="ayah-transliteration">
+                              <span className="ayah-lang-tag">TRANSLITERATION</span>
+                              <p>{ayah.transliteration}</p>
+                            </div>
+                          )}
+
+                          {showTranslation && ayah.translation && (
+                            <div className="ayah-translation">
+                              <span className="ayah-lang-tag">TRANSLATION (SAHIH INTERNATIONAL)</span>
+                              <p>{ayah.translation}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
