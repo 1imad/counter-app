@@ -1,0 +1,75 @@
+{
+  "number": 113,
+  "name": "سُورَةُ الفَلَقِ",
+  "englishName": "Al-Falaq",
+  "englishNameTranslation": "The Dawn",
+  "revelationType": "Meccan",
+  "numberOfAyahs": 5,
+  "ayahs": [
+    {
+      "number": 6226,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ",
+      "translation": "Say, \"I seek refuge in the Lord of daybreak",
+      "transliteration": "Qul a'uzoo bi rabbil-falaq",
+      "juz": 30,
+      "manzil": 7,
+      "page": 604,
+      "ruku": 555,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6227,
+      "numberInSurah": 2,
+      "arabic": "مِن شَرِّ مَا خَلَقَ",
+      "translation": "From the evil of that which He created",
+      "transliteration": "Min sharri ma khalaq",
+      "juz": 30,
+      "manzil": 7,
+      "page": 604,
+      "ruku": 555,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6228,
+      "numberInSurah": 3,
+      "arabic": "وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ",
+      "translation": "And from the evil of darkness when it settles",
+      "transliteration": "Wa min sharri ghasiqin iza waqab",
+      "juz": 30,
+      "manzil": 7,
+      "page": 604,
+      "ruku": 555,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6229,
+      "numberInSurah": 4,
+      "arabic": "وَمِن شَرِّ ٱلنَّفَّٰثَٰتِ فِى ٱلْعُقَدِ",
+      "translation": "And from the evil of the blowers in knots",
+      "transliteration": "Wa min sharrin-naffaa-thaati fil 'uqad",
+      "juz": 30,
+      "manzil": 7,
+      "page": 604,
+      "ruku": 555,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6230,
+      "numberInSurah": 5,
+      "arabic": "وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+      "translation": "And from the evil of an envier when he envies.\"",
+      "transliteration": "Wa min shar ri haasidin iza hasad",
+      "juz": 30,
+      "manzil": 7,
+      "page": 604,
+      "ruku": 555,
+      "hizbQuarter": 240,
+      "sajda": false
+    }
+  ]
+}

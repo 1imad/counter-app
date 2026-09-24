@@ -24,7 +24,7 @@ import {
   HiBookOpen,
   HiHeart
 } from 'react-icons/hi2';
-import { FaHeadphones } from 'react-icons/fa6';
+import { FaHeadphones, FaBookQuran } from 'react-icons/fa6';
 import { soundFx } from './utils/audio';
 import { earbudController } from './utils/earbudMediaSession';
 import { getLocalDateKey, getMsUntilNextMidnight } from './utils/dateUtils';
@@ -33,6 +33,7 @@ import DhikrRemindersModal from './components/DhikrRemindersModal';
 import DhikrPresetsLibrary from './components/DhikrPresetsLibrary';
 import DhikrAnalyticsModal from './components/DhikrAnalyticsModal';
 import EarbudModal from './components/EarbudModal';
+import QuranModal from './components/QuranModal';
 import './App.css';
 
 // Default authentic Sunnah Zikr & Askar counters
@@ -264,6 +265,7 @@ export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isQuranOpen, setIsQuranOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isEarbudActive, setIsEarbudActive] = useState(false);
   const [isEarbudModalOpen, setIsEarbudModalOpen] = useState(false);
@@ -807,6 +809,27 @@ export default function App() {
     soundFx.playClick('up');
   };
 
+  // Add from Quran Ayah
+  const handleAddDhikrFromAyah = (ayahDhikr) => {
+    const newCounter = {
+      id: `quran-${Date.now()}`,
+      title: ayahDhikr.title,
+      arabic: ayahDhikr.arabic,
+      meaning: ayahDhikr.meaning,
+      category: ayahDhikr.category || 'Quranic Ayah',
+      value: 0,
+      step: 1,
+      target: ayahDhikr.target || 33,
+      accentColor: '#10b981',
+      glowColor: 'rgba(16, 185, 129, 0.4)'
+    };
+
+    setCounters(prev => [newCounter, ...prev]);
+    setActiveId(newCounter.id);
+    setIsQuranOpen(false);
+    soundFx.playCelebration();
+  };
+
   // Edit Counter
   const openEditModal = () => {
     setModalForm({
@@ -968,6 +991,17 @@ export default function App() {
               <FaHeadphones className="nav-icon" style={{ color: isEarbudActive ? '#67e8f9' : '#38bdf8' }} />
               <span className="nav-item-label">{isEarbudActive ? 'Earbuds ON' : 'Earbuds'}</span>
               {isEarbudActive && <span className="nav-dot-indicator cyan pulse" />}
+            </button>
+
+            {/* The Noble Quran */}
+            <button
+              className="nav-item-btn"
+              onClick={() => setIsQuranOpen(true)}
+              aria-label="Open The Noble Quran"
+              title="The Noble Quran (Arabic, Translation & Transliteration)"
+            >
+              <FaBookQuran className="nav-icon" style={{ color: '#10b981' }} />
+              <span className="nav-item-label">Quran</span>
             </button>
 
             {/* Sunnah Library */}
@@ -1374,6 +1408,13 @@ export default function App() {
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
         onAddPreset={handleAddPreset}
+      />
+
+      {/* 📖 The Noble Quran Modal */}
+      <QuranModal
+        isOpen={isQuranOpen}
+        onClose={() => setIsQuranOpen(false)}
+        onAddDhikrFromAyah={handleAddDhikrFromAyah}
       />
 
       {/* 📊 Session Analytics Modal */}

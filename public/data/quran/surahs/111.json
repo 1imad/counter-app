@@ -1,0 +1,75 @@
+{
+  "number": 111,
+  "name": "سُورَةُ المَسَدِ",
+  "englishName": "Al-Masad",
+  "englishNameTranslation": "The Palm Fibre",
+  "revelationType": "Meccan",
+  "numberOfAyahs": 5,
+  "ayahs": [
+    {
+      "number": 6217,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ تَبَّتْ يَدَآ أَبِى لَهَبٍۢ وَتَبَّ",
+      "translation": "May the hands of Abu Lahab be ruined, and ruined is he.",
+      "transliteration": "Tab bat yadaa abee Lahabinw-wa tabb",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 553,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6218,
+      "numberInSurah": 2,
+      "arabic": "مَآ أَغْنَىٰ عَنْهُ مَالُهُۥ وَمَا كَسَبَ",
+      "translation": "His wealth will not avail him or that which he gained.",
+      "transliteration": "Maa aghna 'anhu maaluhu wa ma kasab",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 553,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6219,
+      "numberInSurah": 3,
+      "arabic": "سَيَصْلَىٰ نَارًۭا ذَاتَ لَهَبٍۢ",
+      "translation": "He will [enter to] burn in a Fire of [blazing] flame",
+      "transliteration": "Sa yas laa naran zaata lahab",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 553,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6220,
+      "numberInSurah": 4,
+      "arabic": "وَٱمْرَأَتُهُۥ حَمَّالَةَ ٱلْحَطَبِ",
+      "translation": "And his wife [as well] - the carrier of firewood.",
+      "transliteration": "Wam ra-atuh hamma latal-hatab",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 553,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6221,
+      "numberInSurah": 5,
+      "arabic": "فِى جِيدِهَا حَبْلٌۭ مِّن مَّسَدٍۭ",
+      "translation": "Around her neck is a rope of [twisted] fiber.",
+      "transliteration": "Fee jeediha hab lum mim-masad",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 553,
+      "hizbQuarter": 240,
+      "sajda": false
+    }
+  ]
+}

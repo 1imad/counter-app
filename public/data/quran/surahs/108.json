@@ -1,0 +1,49 @@
+{
+  "number": 108,
+  "name": "سُورَةُ الكَوۡثَرِ",
+  "englishName": "Al-Kawthar",
+  "englishNameTranslation": "Abundance",
+  "revelationType": "Meccan",
+  "numberOfAyahs": 3,
+  "ayahs": [
+    {
+      "number": 6205,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ إِنَّآ أَعْطَيْنَٰكَ ٱلْكَوْثَرَ",
+      "translation": "Indeed, We have granted you, [O Muhammad], al-Kawthar.",
+      "transliteration": "Innaa a'taina kal kauthar",
+      "juz": 30,
+      "manzil": 7,
+      "page": 602,
+      "ruku": 550,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6206,
+      "numberInSurah": 2,
+      "arabic": "فَصَلِّ لِرَبِّكَ وَٱنْحَرْ",
+      "translation": "So pray to your Lord and sacrifice [to Him alone].",
+      "transliteration": "Fa salli li rabbika wanhar",
+      "juz": 30,
+      "manzil": 7,
+      "page": 602,
+      "ruku": 550,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6207,
+      "numberInSurah": 3,
+      "arabic": "إِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ",
+      "translation": "Indeed, your enemy is the one cut off.",
+      "transliteration": "Inna shani-aka huwal abtar",
+      "juz": 30,
+      "manzil": 7,
+      "page": 602,
+      "ruku": 550,
+      "hizbQuarter": 240,
+      "sajda": false
+    }
+  ]
+}

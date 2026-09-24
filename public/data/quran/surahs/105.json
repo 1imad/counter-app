@@ -1,0 +1,75 @@
+{
+  "number": 105,
+  "name": "سُورَةُ الفِيلِ",
+  "englishName": "Al-Fil",
+  "englishNameTranslation": "The Elephant",
+  "revelationType": "Meccan",
+  "numberOfAyahs": 5,
+  "ayahs": [
+    {
+      "number": 6189,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ",
+      "translation": "Have you not considered, [O Muhammad], how your Lord dealt with the companions of the elephant?",
+      "transliteration": "Alam tara kaifa fa'ala rabbuka bi ashaabil feel",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 547,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6190,
+      "numberInSurah": 2,
+      "arabic": "أَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍۢ",
+      "translation": "Did He not make their plan into misguidance?",
+      "transliteration": "Alam yaj'al kai dahum fee tad leel",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 547,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6191,
+      "numberInSurah": 3,
+      "arabic": "وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ",
+      "translation": "And He sent against them birds in flocks,",
+      "transliteration": "Wa arsala 'alaihim tairan abaabeel",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 547,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6192,
+      "numberInSurah": 4,
+      "arabic": "تَرْمِيهِم بِحِجَارَةٍۢ مِّن سِجِّيلٍۢ",
+      "translation": "Striking them with stones of hard clay,",
+      "transliteration": "Tar meehim bi hi jaaratim min sij jeel",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 547,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6193,
+      "numberInSurah": 5,
+      "arabic": "فَجَعَلَهُمْ كَعَصْفٍۢ مَّأْكُولٍۭ",
+      "translation": "And He made them like eaten straw.",
+      "transliteration": "Faja 'alahum ka'asfim m'akool",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 547,
+      "hizbQuarter": 240,
+      "sajda": false
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "number": 109,
+  "name": "سُورَةُ الكَافِرُونَ",
+  "englishName": "Al-Kaafiroon",
+  "englishNameTranslation": "The Disbelievers",
+  "revelationType": "Meccan",
+  "numberOfAyahs": 6,
+  "ayahs": [
+    {
+      "number": 6208,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ يَٰٓأَيُّهَا ٱلْكَٰفِرُونَ",
+      "translation": "Say, \"O disbelievers,",
+      "transliteration": "Qul yaa-ai yuhal kaafiroon",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 551,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6209,
+      "numberInSurah": 2,
+      "arabic": "لَآ أَعْبُدُ مَا تَعْبُدُونَ",
+      "translation": "I do not worship what you worship.",
+      "transliteration": "Laa a'budu ma t'abudoon",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 551,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6210,
+      "numberInSurah": 3,
+      "arabic": "وَلَآ أَنتُمْ عَٰبِدُونَ مَآ أَعْبُدُ",
+      "translation": "Nor are you worshippers of what I worship.",
+      "transliteration": "Wa laa antum 'aabidoona maa a'bud",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 551,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6211,
+      "numberInSurah": 4,
+      "arabic": "وَلَآ أَنَا۠ عَابِدٌۭ مَّا عَبَدتُّمْ",
+      "translation": "Nor will I be a worshipper of what you worship.",
+      "transliteration": "Wa laa ana 'abidum maa 'abattum",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 551,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6212,
+      "numberInSurah": 5,
+      "arabic": "وَلَآ أَنتُمْ عَٰبِدُونَ مَآ أَعْبُدُ",
+      "translation": "Nor will you be worshippers of what I worship.",
+      "transliteration": "Wa laa antum 'aabidoona ma a'bud",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 551,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6213,
+      "numberInSurah": 6,
+      "arabic": "لَكُمْ دِينُكُمْ وَلِىَ دِينِ",
+      "translation": "For you is your religion, and for me is my religion.\"",
+      "transliteration": "Lakum deenukum wa liya deen.",
+      "juz": 30,
+      "manzil": 7,
+      "page": 603,
+      "ruku": 551,
+      "hizbQuarter": 240,
+      "sajda": false
+    }
+  ]
+}

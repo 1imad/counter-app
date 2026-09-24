@@ -1,0 +1,49 @@
+{
+  "number": 103,
+  "name": "سُورَةُ العَصۡرِ",
+  "englishName": "Al-Asr",
+  "englishNameTranslation": "The Declining Day, Epoch",
+  "revelationType": "Meccan",
+  "numberOfAyahs": 3,
+  "ayahs": [
+    {
+      "number": 6177,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ وَٱلْعَصْرِ",
+      "translation": "By time,",
+      "transliteration": "Wal' asr",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 545,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6178,
+      "numberInSurah": 2,
+      "arabic": "إِنَّ ٱلْإِنسَٰنَ لَفِى خُسْرٍ",
+      "translation": "Indeed, mankind is in loss,",
+      "transliteration": "Innal insaana lafee khusr",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 545,
+      "hizbQuarter": 240,
+      "sajda": false
+    },
+    {
+      "number": 6179,
+      "numberInSurah": 3,
+      "arabic": "إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّٰلِحَٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلصَّبْرِ",
+      "translation": "Except for those who have believed and done righteous deeds and advised each other to truth and advised each other to patience.",
+      "transliteration": "Il lal lazeena aamanu wa 'amilus saali haati wa tawa saw bil haqqi wa tawa saw bis sabr",
+      "juz": 30,
+      "manzil": 7,
+      "page": 601,
+      "ruku": 545,
+      "hizbQuarter": 240,
+      "sajda": false
+    }
+  ]
+}
