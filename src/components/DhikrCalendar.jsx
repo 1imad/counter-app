@@ -9,11 +9,12 @@ import {
   HiCheckCircle
 } from 'react-icons/hi2';
 
+import { getLocalDateKey } from '../utils/dateUtils';
+
 export default function DhikrCalendar({ isOpen, onClose, calendarData = {}, onSelectDate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDayKey, setSelectedDayKey] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return getLocalDateKey();
   });
 
   if (!isOpen) return null;
@@ -49,7 +50,7 @@ export default function DhikrCalendar({ isOpen, onClose, calendarData = {}, onSe
 
     // Check consecutive days starting today or yesterday
     for (let i = 0; i < 365; i++) {
-      const key = checkDate.toISOString().split('T')[0];
+      const key = getLocalDateKey(checkDate);
       if (calendarData[key] && calendarData[key].total > 0) {
         streak++;
         checkDate.setDate(checkDate.getDate() - 1);
@@ -91,7 +92,7 @@ export default function DhikrCalendar({ isOpen, onClose, calendarData = {}, onSe
   }
 
   // Current month days
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateKey();
   for (let d = 1; d <= daysInMonth; d++) {
     const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const dayData = calendarData[dateKey];
@@ -157,6 +158,12 @@ export default function DhikrCalendar({ isOpen, onClose, calendarData = {}, onSe
               <span className="cal-stat-lbl">Days Completed</span>
             </div>
           </div>
+        </div>
+
+        {/* Daily Auto-Reset Confirmation Badge */}
+        <div className="calendar-reset-indicator">
+          <span style={{ fontWeight: 600 }}>🌙 Daily Reset Active</span>
+          <span className="reset-subtext">• Counters refresh to 0 each midnight while streak & history are saved</span>
         </div>
 
         {/* Month Navigation */}

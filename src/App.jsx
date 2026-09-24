@@ -27,6 +27,7 @@ import {
 import { FaHeadphones } from 'react-icons/fa6';
 import { soundFx } from './utils/audio';
 import { earbudController } from './utils/earbudMediaSession';
+import { getLocalDateKey, getMsUntilNextMidnight } from './utils/dateUtils';
 import DhikrCalendar from './components/DhikrCalendar';
 import DhikrRemindersModal from './components/DhikrRemindersModal';
 import DhikrPresetsLibrary from './components/DhikrPresetsLibrary';
@@ -120,19 +121,39 @@ const COLOR_THEMES = [
 ];
 
 export default function App() {
-  // Load counters from local storage or defaults (automatically migration to Dhikr if previous was generic)
+  // Load counters from local storage or defaults with automatic daily rollover reset
   const [counters, setCounters] = useState(() => {
+    const today = getLocalDateKey();
+    const lastActiveDate = localStorage.getItem('quantum_last_active_date');
+    const isNewDay = lastActiveDate && lastActiveDate !== today;
+
     try {
       const saved = localStorage.getItem('quantum_counters');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // If older version without arabic, load default Dhikrs
+        // If authentic Dhikr counters
         if (parsed.length > 0 && parsed[0].arabic) {
+          // If a new day has arrived since the user last counted, reset daily values to 0
+          if (isNewDay) {
+            const resetCounters = parsed.map(c => ({ ...c, value: 0 }));
+            try {
+              localStorage.setItem('quantum_last_active_date', today);
+              localStorage.setItem('quantum_counters', JSON.stringify(resetCounters));
+            } catch (e) {
+              console.error('Failed to save daily reset counters', e);
+            }
+            return resetCounters;
+          }
+          if (!lastActiveDate) {
+            localStorage.setItem('quantum_last_active_date', today);
+          }
           return parsed;
         }
       }
+      localStorage.setItem('quantum_last_active_date', today);
       return DEFAULT_DHIKR_COUNTERS;
     } catch {
+      localStorage.setItem('quantum_last_active_date', today);
       return DEFAULT_DHIKR_COUNTERS;
     }
   });
@@ -326,6 +347,89 @@ export default function App() {
     }
   }, [autoTickSpeed]);
 
+  // Automatic Daily Reset at Midnight & on App Wake/Focus
+  useEffect(() => {
+    let timeoutId;
+    let intervalId;
+
+    const performDailyResetCheck = () => {
+      const today = getLocalDateKey();
+      const storedLastDate = localStorage.getItem('quantum_last_active_date');
+
+      if (storedLastDate && storedLastDate !== today) {
+        console.log(`[DailyReset] Day completed (${storedLastDate} -> ${today}). Resetting daily counters to 0.`);
+
+        // Reset all counter values to 0 for the fresh day
+        setCounters(prevCounters => {
+          const reset = prevCounters.map(c => ({ ...c, value: 0 }));
+          try {
+            localStorage.setItem('quantum_counters', JSON.stringify(reset));
+          } catch (e) {
+            console.error('Failed to save reset counters', e);
+          }
+          return reset;
+        });
+
+        localStorage.setItem('quantum_last_active_date', today);
+
+        // Notify user with polite toast
+        setActiveToastReminder({
+          title: '🌙 New Day Started',
+          message: 'Your daily Dhikr counters have refreshed to 0 for today. May Allah accept your remembrance!'
+        });
+
+        // Record daily reset event in history
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setHistory(prevHist => [
+          {
+            id: Math.random().toString(36).substring(2, 9),
+            counterId: 'system-reset',
+            counterTitle: 'Daily Reset',
+            time: timestamp,
+            type: 'reset',
+            delta: 0,
+            prevVal: 0,
+            nextVal: 0,
+            label: 'New day started — counters refreshed to 0'
+          },
+          ...prevHist.slice(0, 19)
+        ]);
+      } else if (!storedLastDate) {
+        localStorage.setItem('quantum_last_active_date', today);
+      }
+    };
+
+    // 1. Timer for exact local midnight
+    const setupMidnightTimer = () => {
+      const ms = getMsUntilNextMidnight();
+      timeoutId = setTimeout(() => {
+        performDailyResetCheck();
+        setupMidnightTimer(); // Chain to the next midnight
+      }, ms + 500); // 500ms buffer past 00:00:00
+    };
+
+    setupMidnightTimer();
+
+    // 2. Fallback periodic check every 15 seconds (catches OS wake/sleep and system clock adjustments)
+    intervalId = setInterval(performDailyResetCheck, 15000);
+
+    // 3. Check immediately when phone unlocks, app un-minimizes, or tab regains focus
+    const handleWake = () => {
+      if (document.visibilityState === 'visible') {
+        performDailyResetCheck();
+      }
+    };
+    document.addEventListener('visibilitychange', handleWake);
+    window.addEventListener('focus', performDailyResetCheck);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleWake);
+      window.removeEventListener('focus', performDailyResetCheck);
+    };
+  }, []);
+
   // Toggle sound
   const handleToggleSound = () => {
     const nextState = !soundEnabled;
@@ -357,7 +461,8 @@ export default function App() {
 
   // General update value function
   const updateValue = useCallback((delta, label = 'Step') => {
-    const todayKey = new Date().toISOString().split('T')[0];
+    const todayKey = getLocalDateKey();
+    localStorage.setItem('quantum_last_active_date', todayKey);
 
     setCounters(prevCounters =>
       prevCounters.map(item => {
@@ -764,6 +869,7 @@ export default function App() {
       localStorage.removeItem('quantum_autotick_speed');
       localStorage.removeItem('quantum_dhikr_calendar');
       localStorage.removeItem('quantum_dhikr_reminders');
+      localStorage.removeItem('quantum_last_active_date');
       setCounters(DEFAULT_DHIKR_COUNTERS);
       setActiveId(DEFAULT_DHIKR_COUNTERS[0].id);
       setHistory([]);
